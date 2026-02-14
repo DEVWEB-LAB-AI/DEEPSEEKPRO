@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeepSeek Pro - AI Chat Unlimited</title>
     <style>
+        /* Giữ nguyên CSS như cũ */
         * {
             margin: 0;
             padding: 0;
@@ -349,6 +350,15 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-secondary);
         }
+
+        .api-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -366,12 +376,30 @@
                     <button class="theme-btn" onclick="setTheme('dark')">Tối</button>
                 </div>
             </div>
+            <div class="api-status" id="apiStatus">
+                🔴 Chưa kết nối API
+            </div>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
             <div class="chat-container" id="chatContainer">
-                <div class="messages-wrapper" id="messagesWrapper"></div>
+                <div class="messages-wrapper" id="messagesWrapper">
+                    <!-- Welcome message -->
+                    <div class="message ai">
+                        <div class="message-content">
+                            <div class="avatar ai">AI</div>
+                            <div class="text">
+                                Xin chào! Tôi là DeepSeek AI, trợ lý thông minh có thể giúp bạn:<br>
+                                💻 Viết code không giới hạn<br>
+                                🖼️ Phân tích hình ảnh<br>
+                                📁 Xử lý file đính kèm<br>
+                                <br>
+                                Hãy bắt đầu bằng cách nhập tin nhắn hoặc tải file lên!
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Input Area -->
@@ -415,9 +443,9 @@
         let attachedFiles = [];
         let isProcessing = false;
 
-        // DeepSeek API configuration
-        const DEEPSEEK_API_KEY = 'sk-d597b5d321a94e0899b7835793d6efa6'; // Thay bằng API key của bạn
-        const DEEPSEEK_API_URL = 'https://api.deepseek.com';
+        // DeepSeek API configuration - THAY API KEY CỦA BẠN VÀO ĐÂY
+        const DEEPSEEK_API_KEY = 'sk-d597b5d321a94e0899b7835793d6efa6'; // API key của bạn
+        const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'; // Đúng endpoint
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -428,7 +456,31 @@
             } else {
                 loadChat('default');
             }
+            checkAPIStatus();
         });
+
+        // Kiểm tra kết nối API
+        async function checkAPIStatus() {
+            const statusEl = document.getElementById('apiStatus');
+            try {
+                const response = await fetch('https://api.deepseek.com/v1/models', {
+                    headers: {
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    statusEl.innerHTML = '🟢 Đã kết nối DeepSeek API';
+                    statusEl.style.color = '#00b894';
+                } else {
+                    statusEl.innerHTML = '🔴 Lỗi kết nối API';
+                    statusEl.style.color = '#ff4444';
+                }
+            } catch (error) {
+                statusEl.innerHTML = '🔴 Không thể kết nối API';
+                statusEl.style.color = '#ff4444';
+            }
+        }
 
         // Theme functions
         function setTheme(theme) {
@@ -498,9 +550,28 @@
             const wrapper = document.getElementById('messagesWrapper');
             wrapper.innerHTML = '';
             
-            currentChat.messages.forEach(msg => {
-                addMessageToUI(msg.role, msg.content, msg.files);
-            });
+            if (currentChat.messages.length === 0) {
+                // Show welcome message
+                wrapper.innerHTML = `
+                    <div class="message ai">
+                        <div class="message-content">
+                            <div class="avatar ai">AI</div>
+                            <div class="text">
+                                Xin chào! Tôi là DeepSeek AI, trợ lý thông minh có thể giúp bạn:<br>
+                                💻 Viết code không giới hạn<br>
+                                🖼️ Phân tích hình ảnh<br>
+                                📁 Xử lý file đính kèm<br>
+                                <br>
+                                Hãy bắt đầu bằng cách nhập tin nhắn hoặc tải file lên!
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                currentChat.messages.forEach(msg => {
+                    addMessageToUI(msg.role, msg.content, msg.files);
+                });
+            }
             
             scrollToBottom();
         }
@@ -511,10 +582,10 @@
             messageDiv.className = `message ${role}`;
             
             let filesHtml = '';
-            if (files) {
+            if (files && files.length > 0) {
                 filesHtml = '<div style="margin-top: 8px;">';
                 files.forEach(file => {
-                    if (file.type.startsWith('image/')) {
+                    if (file.type && file.type.startsWith('image/')) {
                         filesHtml += `<img src="${file.data}" class="image-preview" alt="Attached image">`;
                     } else {
                         filesHtml += `<div class="file-item">📎 ${file.name}</div>`;
@@ -594,7 +665,7 @@
                 const item = document.createElement('div');
                 item.className = 'file-item';
                 item.innerHTML = `
-                    ${file.type.startsWith('image/') ? '🖼️' : '📄'} ${file.name}
+                    ${file.type && file.type.startsWith('image/') ? '🖼️' : '📄'} ${file.name}
                     <span class="remove-file" onclick="removeFile(${index})">×</span>
                 `;
                 preview.appendChild(item);
@@ -648,7 +719,7 @@
                 saveChats();
             } catch (error) {
                 hideTypingIndicator();
-                addMessageToUI('ai', 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.');
+                addMessageToUI('ai', 'Xin lỗi, đã có lỗi xảy ra: ' + error.message);
                 console.error('API Error:', error);
             } finally {
                 isProcessing = false;
@@ -658,33 +729,44 @@
         }
 
         async function callDeepSeekAPI(message, files) {
-            // Nếu không có API key, dùng mock response
-            if (DEEPSEEK_API_KEY === 'YOUR_DEEPSEEK_API_KEY') {
-                return mockAIResponse(message, files);
-            }
-
             try {
+                // Chuẩn bị messages
                 const messages = [
-                    { role: 'system', content: 'Bạn là DeepSeek AI, trợ lý thông minh có thể viết code, phân tích ảnh và xử lý file.' },
-                    ...currentChat.messages.slice(-10).map(m => ({
-                        role: m.role === 'ai' ? 'assistant' : 'user',
-                        content: m.content
-                    }))
+                    { 
+                        role: 'system', 
+                        content: 'Bạn là DeepSeek AI, trợ lý thông minh có thể viết code, phân tích ảnh và xử lý file. Hãy trả lời bằng tiếng Việt.'
+                    }
                 ];
 
-                if (files && files.length > 0) {
-                    const fileContent = files.map(f => 
-                        f.type.startsWith('image/') ? 
-                        `[Image: ${f.name}]` : 
-                        `[File: ${f.name}\nContent: ${f.data}]`
-                    ).join('\n');
-                    
+                // Thêm lịch sử chat (5 tin nhắn gần nhất)
+                const recentMessages = currentChat.messages.slice(-5);
+                recentMessages.forEach(msg => {
                     messages.push({
-                        role: 'user',
-                        content: `${message}\n\nAttached files:\n${fileContent}`
+                        role: msg.role === 'ai' ? 'assistant' : 'user',
+                        content: msg.content
+                    });
+                });
+
+                // Thêm tin nhắn hiện tại
+                let userContent = message;
+                if (files && files.length > 0) {
+                    userContent += '\n\nAttached files:\n';
+                    files.forEach(f => {
+                        if (f.type.startsWith('image/')) {
+                            userContent += `\n[Image: ${f.name}]`;
+                        } else {
+                            userContent += `\n[File: ${f.name}]\nContent: ${f.data.substring(0, 1000)}...`;
+                        }
                     });
                 }
+                
+                messages.push({
+                    role: 'user',
+                    content: userContent
+                });
 
+                console.log('Sending request to DeepSeek API...');
+                
                 const response = await fetch(DEEPSEEK_API_URL, {
                     method: 'POST',
                     headers: {
@@ -700,36 +782,25 @@
                     })
                 });
 
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('API Error Response:', errorData);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
-                return data.choices[0].message.content;
+                console.log('API Response:', data);
+                
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    return data.choices[0].message.content;
+                } else {
+                    throw new Error('Invalid API response format');
+                }
+                
             } catch (error) {
                 console.error('API call failed:', error);
-                return mockAIResponse(message, files);
+                throw error; // Ném lỗi để xử lý ở sendMessage
             }
-        }
-
-        function mockAIResponse(message, files) {
-            let response = 'Đây là phản hồi mẫu từ AI.\n\n';
-            
-            if (files && files.length > 0) {
-                response += '📎 Đã nhận được file:\n';
-                files.forEach(f => {
-                    response += `- ${f.name} (${(f.size / 1024).toFixed(2)}KB)\n`;
-                });
-                response += '\n';
-            }
-            
-            if (message.toLowerCase().includes('code') || message.toLowerCase().includes('viết')) {
-                response += '```javascript\n// Đây là code mẫu\nfunction helloWorld() {\n    console.log("Xin chào từ DeepSeek!");\n    return "Code không giới hạn!";\n}\n\n// Bạn có thể yêu cầu bất kỳ code nào\nhelloWorld();\n```';
-            } else {
-                response += 'Tôi có thể giúp bạn:\n';
-                response += '💻 Viết code không giới hạn\n';
-                response += '🖼️ Phân tích hình ảnh\n';
-                response += '📁 Xử lý file đính kèm\n';
-                response += '🎨 Tùy chỉnh giao diện\n';
-            }
-            
-            return response;
         }
 
         function analyzeImage() {
