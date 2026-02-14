@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeepSeek Pro - AI Chat Unlimited</title>
+    <title>Gemini AI Chat - Miễn phí</title>
     <style>
         /* Giữ nguyên CSS như cũ */
         * {
@@ -133,6 +133,35 @@
 
         .theme-btn:hover {
             background-color: var(--hover-color);
+        }
+
+        /* API Key Input */
+        .api-key-container {
+            padding: 12px 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 8px;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .save-api-btn {
+            width: 100%;
+            padding: 6px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
         }
 
         /* Main Content */
@@ -359,6 +388,16 @@
             color: var(--text-secondary);
             margin-top: 8px;
         }
+
+        .model-select {
+            width: 100%;
+            padding: 6px;
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
@@ -369,6 +408,18 @@
                 <span>+</span> New Chat
             </button>
             <div class="history-list" id="historyList"></div>
+            
+            <!-- API Configuration -->
+            <div class="api-key-container">
+                <input type="text" id="apiKeyInput" class="api-key-input" 
+                       placeholder="Nhập Gemini API Key của bạn" value="">
+                <select id="modelSelect" class="model-select">
+                    <option value="gemini-pro">Gemini Pro (Chat)</option>
+                    <option value="gemini-pro-vision">Gemini Pro Vision (Ảnh)</option>
+                </select>
+                <button class="save-api-btn" onclick="saveAPIKey()">Lưu API Key</button>
+            </div>
+            
             <div class="theme-toggle">
                 <span>Giao diện</span>
                 <div>
@@ -377,7 +428,7 @@
                 </div>
             </div>
             <div class="api-status" id="apiStatus">
-                🔴 Chưa kết nối API
+                🔴 Chưa có API Key
             </div>
         </div>
 
@@ -390,12 +441,23 @@
                         <div class="message-content">
                             <div class="avatar ai">AI</div>
                             <div class="text">
-                                Xin chào! Tôi là DeepSeek AI, trợ lý thông minh có thể giúp bạn:<br>
-                                💻 Viết code không giới hạn<br>
-                                🖼️ Phân tích hình ảnh<br>
-                                📁 Xử lý file đính kèm<br>
+                                <h3>🌟 Chào mừng bạn đến với Gemini AI Chat!</h3>
+                                <p>Đây là phiên bản <strong>hoàn toàn miễn phí</strong> sử dụng Google Gemini API.</p>
                                 <br>
-                                Hãy bắt đầu bằng cách nhập tin nhắn hoặc tải file lên!
+                                <strong>📝 Hướng dẫn sử dụng:</strong><br>
+                                1️⃣ Truy cập <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                                2️⃣ Đăng nhập bằng Google Account<br>
+                                3️⃣ Click "Get API Key" → "Create API Key"<br>
+                                4️⃣ Copy API Key và dán vào ô bên trái<br>
+                                5️⃣ Nhấn "Lưu API Key" và bắt đầu chat!<br>
+                                <br>
+                                <strong>✨ Tính năng:</strong><br>
+                                💬 Chat miễn phí không giới hạn<br>
+                                🖼️ Hỗ trợ phân tích hình ảnh (Vision)<br>
+                                💻 Viết code đa ngôn ngữ<br>
+                                📁 Đính kèm file văn bản<br>
+                                🌓 Chế độ sáng/tối<br>
+                                💾 Lưu lịch sử chat
                             </div>
                         </div>
                     </div>
@@ -442,10 +504,10 @@
         let currentTheme = localStorage.getItem('theme') || 'light';
         let attachedFiles = [];
         let isProcessing = false;
-
-        // DeepSeek API configuration - THAY API KEY CỦA BẠN VÀO ĐÂY
-        const DEEPSEEK_API_KEY = 'sk-d597b5d321a94e0899b7835793d6efa6'; // API key của bạn
-        const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions'; // Đúng endpoint
+        
+        // API Configuration
+        let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
+        let currentModel = localStorage.getItem('gemini_model') || 'gemini-pro';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -456,28 +518,38 @@
             } else {
                 loadChat('default');
             }
-            checkAPIStatus();
+            
+            // Set API key input value
+            document.getElementById('apiKeyInput').value = AIzaSyD1J1h-kIznnb5noUVscj7w2FR1hkqVU3A;
+            document.getElementById('modelSelect').value = currentModel;
+            
+            updateAPIStatus();
         });
 
-        // Kiểm tra kết nối API
-        async function checkAPIStatus() {
+        // API Key management
+        function saveAPIKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const model = document.getElementById('modelSelect').value;
+            
+            if (apiKey) {
+                GEMINI_API_KEY = apiKey;
+                currentModel = model;
+                localStorage.setItem('gemini_api_key', apiKey);
+                localStorage.setItem('gemini_model', model);
+                updateAPIStatus();
+                alert('✅ Đã lưu API Key thành công!');
+            } else {
+                alert('⚠️ Vui lòng nhập API Key');
+            }
+        }
+
+        function updateAPIStatus() {
             const statusEl = document.getElementById('apiStatus');
-            try {
-                const response = await fetch('https://api.deepseek.com/v1/models', {
-                    headers: {
-                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
-                    }
-                });
-                
-                if (response.ok) {
-                    statusEl.innerHTML = '🟢 Đã kết nối DeepSeek API';
-                    statusEl.style.color = '#00b894';
-                } else {
-                    statusEl.innerHTML = '🔴 Lỗi kết nối API';
-                    statusEl.style.color = '#ff4444';
-                }
-            } catch (error) {
-                statusEl.innerHTML = '🔴 Không thể kết nối API';
+            if (GEMINI_API_KEY) {
+                statusEl.innerHTML = '🟢 Đã có API Key - Sẵn sàng';
+                statusEl.style.color = '#00b894';
+            } else {
+                statusEl.innerHTML = '🔴 Chưa có API Key - Vui lòng nhập';
                 statusEl.style.color = '#ff4444';
             }
         }
@@ -557,12 +629,23 @@
                         <div class="message-content">
                             <div class="avatar ai">AI</div>
                             <div class="text">
-                                Xin chào! Tôi là DeepSeek AI, trợ lý thông minh có thể giúp bạn:<br>
-                                💻 Viết code không giới hạn<br>
-                                🖼️ Phân tích hình ảnh<br>
-                                📁 Xử lý file đính kèm<br>
+                                <h3>🌟 Chào mừng bạn đến với Gemini AI Chat!</h3>
+                                <p>Đây là phiên bản <strong>hoàn toàn miễn phí</strong> sử dụng Google Gemini API.</p>
                                 <br>
-                                Hãy bắt đầu bằng cách nhập tin nhắn hoặc tải file lên!
+                                <strong>📝 Hướng dẫn sử dụng:</strong><br>
+                                1️⃣ Truy cập <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                                2️⃣ Đăng nhập bằng Google Account<br>
+                                3️⃣ Click "Get API Key" → "Create API Key"<br>
+                                4️⃣ Copy API Key và dán vào ô bên trái<br>
+                                5️⃣ Nhấn "Lưu API Key" và bắt đầu chat!<br>
+                                <br>
+                                <strong>✨ Tính năng:</strong><br>
+                                💬 Chat miễn phí không giới hạn<br>
+                                🖼️ Hỗ trợ phân tích hình ảnh (Vision)<br>
+                                💻 Viết code đa ngôn ngữ<br>
+                                📁 Đính kèm file văn bản<br>
+                                🌓 Chế độ sáng/tối<br>
+                                💾 Lưu lịch sử chat
                             </div>
                         </div>
                     </div>
@@ -681,6 +764,11 @@
         async function sendMessage() {
             if (isProcessing) return;
             
+            if (!GEMINI_API_KEY) {
+                alert('⚠️ Vui lòng nhập API Key trước khi chat!');
+                return;
+            }
+            
             const input = document.getElementById('messageInput');
             const message = input.innerText.trim();
             
@@ -704,7 +792,7 @@
             showTypingIndicator();
             
             try {
-                const aiResponse = await callDeepSeekAPI(message, attachedFiles);
+                const aiResponse = await callGeminiAPI(message, attachedFiles);
                 hideTypingIndicator();
                 
                 const aiMessage = {
@@ -719,7 +807,7 @@
                 saveChats();
             } catch (error) {
                 hideTypingIndicator();
-                addMessageToUI('ai', 'Xin lỗi, đã có lỗi xảy ra: ' + error.message);
+                addMessageToUI('ai', '❌ Lỗi: ' + error.message + '\n\nVui lòng kiểm tra API Key hoặc thử lại sau.');
                 console.error('API Error:', error);
             } finally {
                 isProcessing = false;
@@ -728,78 +816,89 @@
             }
         }
 
-        async function callDeepSeekAPI(message, files) {
+        async function callGeminiAPI(message, files) {
             try {
-                // Chuẩn bị messages
-                const messages = [
-                    { 
-                        role: 'system', 
-                        content: 'Bạn là DeepSeek AI, trợ lý thông minh có thể viết code, phân tích ảnh và xử lý file. Hãy trả lời bằng tiếng Việt.'
-                    }
-                ];
-
-                // Thêm lịch sử chat (5 tin nhắn gần nhất)
-                const recentMessages = currentChat.messages.slice(-5);
-                recentMessages.forEach(msg => {
-                    messages.push({
-                        role: msg.role === 'ai' ? 'assistant' : 'user',
-                        content: msg.content
-                    });
-                });
-
-                // Thêm tin nhắn hiện tại
-                let userContent = message;
-                if (files && files.length > 0) {
-                    userContent += '\n\nAttached files:\n';
-                    files.forEach(f => {
-                        if (f.type.startsWith('image/')) {
-                            userContent += `\n[Image: ${f.name}]`;
-                        } else {
-                            userContent += `\n[File: ${f.name}]\nContent: ${f.data.substring(0, 1000)}...`;
-                        }
-                    });
+                const model = document.getElementById('modelSelect').value;
+                const hasImages = files && files.some(f => f.type && f.type.startsWith('image/'));
+                
+                // Chọn model phù hợp
+                let apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/';
+                if (hasImages && model === 'gemini-pro-vision') {
+                    apiUrl += 'gemini-pro-vision:generateContent';
+                } else {
+                    apiUrl += 'gemini-pro:generateContent';
+                }
+                apiUrl += `?key=${GEMINI_API_KEY}`;
+                
+                // Chuẩn bị content parts
+                const parts = [];
+                
+                // Thêm text message
+                if (message) {
+                    parts.push({ text: message });
                 }
                 
-                messages.push({
-                    role: 'user',
-                    content: userContent
-                });
-
-                console.log('Sending request to DeepSeek API...');
+                // Thêm files
+                if (files && files.length > 0) {
+                    for (const file of files) {
+                        if (file.type && file.type.startsWith('image/')) {
+                            // Xử lý image
+                            const base64Data = file.data.split(',')[1];
+                            parts.push({
+                                inlineData: {
+                                    mimeType: file.type,
+                                    data: base64Data
+                                }
+                            });
+                        } else {
+                            // Xử lý text file
+                            parts.push({ 
+                                text: `\n\n[File: ${file.name}]\nContent: ${file.data.substring(0, 2000)}` 
+                            });
+                        }
+                    }
+                }
                 
-                const response = await fetch(DEEPSEEK_API_URL, {
+                const requestBody = {
+                    contents: [{
+                        parts: parts
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 2048,
+                    }
+                };
+                
+                console.log('Sending to Gemini API:', requestBody);
+                
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
                     },
-                    body: JSON.stringify({
-                        model: 'deepseek-chat',
-                        messages: messages,
-                        temperature: 0.7,
-                        max_tokens: 4000,
-                        stream: false
-                    })
+                    body: JSON.stringify(requestBody)
                 });
-
+                
                 if (!response.ok) {
                     const errorData = await response.text();
-                    console.error('API Error Response:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    console.error('Gemini API Error:', errorData);
+                    throw new Error(`API Error: ${response.status}`);
                 }
-
-                const data = await response.json();
-                console.log('API Response:', data);
                 
-                if (data.choices && data.choices[0] && data.choices[0].message) {
-                    return data.choices[0].message.content;
+                const data = await response.json();
+                console.log('Gemini Response:', data);
+                
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    return data.candidates[0].content.parts[0].text;
+                } else if (data.error) {
+                    throw new Error(data.error.message);
                 } else {
-                    throw new Error('Invalid API response format');
+                    throw new Error('Invalid response format');
                 }
                 
             } catch (error) {
-                console.error('API call failed:', error);
-                throw error; // Ném lỗi để xử lý ở sendMessage
+                console.error('Gemini API call failed:', error);
+                throw error;
             }
         }
 
