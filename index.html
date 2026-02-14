@@ -393,10 +393,30 @@
             width: 100%;
             padding: 6px;
             margin-top: 8px;
+            margin-bottom: 8px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             background: var(--bg-primary);
             color: var(--text-primary);
+        }
+
+        .test-api-btn {
+            width: 100%;
+            padding: 6px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 4px;
+            word-break: break-word;
         }
     </style>
 </head>
@@ -414,10 +434,13 @@
                 <input type="text" id="apiKeyInput" class="api-key-input" 
                        placeholder="Nhập Gemini API Key của bạn" value="">
                 <select id="modelSelect" class="model-select">
-                    <option value="gemini-pro">Gemini Pro (Chat)</option>
-                    <option value="gemini-pro-vision">Gemini Pro Vision (Ảnh)</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Mới nhất)</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Nhanh)</option>
+                    <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
                 </select>
                 <button class="save-api-btn" onclick="saveAPIKey()">Lưu API Key</button>
+                <button class="test-api-btn" onclick="testAPIConnection()">🔌 Kiểm tra kết nối</button>
+                <div id="apiError" class="error-message"></div>
             </div>
             
             <div class="theme-toggle">
@@ -449,15 +472,13 @@
                                 2️⃣ Đăng nhập bằng Google Account<br>
                                 3️⃣ Click "Get API Key" → "Create API Key"<br>
                                 4️⃣ Copy API Key và dán vào ô bên trái<br>
-                                5️⃣ Nhấn "Lưu API Key" và bắt đầu chat!<br>
+                                5️⃣ Nhấn "Lưu API Key" và "Kiểm tra kết nối"<br>
+                                6️⃣ Bắt đầu chat!<br>
                                 <br>
-                                <strong>✨ Tính năng:</strong><br>
-                                💬 Chat miễn phí không giới hạn<br>
-                                🖼️ Hỗ trợ phân tích hình ảnh (Vision)<br>
-                                💻 Viết code đa ngôn ngữ<br>
-                                📁 Đính kèm file văn bản<br>
-                                🌓 Chế độ sáng/tối<br>
-                                💾 Lưu lịch sử chat
+                                <strong>✨ Lưu ý:</strong><br>
+                                - API Key của bạn bắt đầu bằng "AIza..."<br>
+                                - Nếu thấy lỗi, hãy kiểm tra lại API Key<br>
+                                - Gemini 1.5 là phiên bản mới nhất
                             </div>
                         </div>
                     </div>
@@ -507,7 +528,7 @@
         
         // API Configuration
         let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
-        let currentModel = localStorage.getItem('gemini_model') || 'gemini-pro';
+        let currentModel = localStorage.getItem('gemini_model') || 'gemini-1.5-pro';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -537,19 +558,60 @@
                 localStorage.setItem('gemini_api_key', apiKey);
                 localStorage.setItem('gemini_model', model);
                 updateAPIStatus();
+                document.getElementById('apiError').innerHTML = '';
                 alert('✅ Đã lưu API Key thành công!');
             } else {
                 alert('⚠️ Vui lòng nhập API Key');
             }
         }
 
+        async function testAPIConnection() {
+            if (!GEMINI_API_KEY) {
+                alert('⚠️ Vui lòng nhập API Key trước!');
+                return;
+            }
+
+            const statusEl = document.getElementById('apiStatus');
+            const errorEl = document.getElementById('apiError');
+            
+            statusEl.innerHTML = '🟡 Đang kiểm tra...';
+            statusEl.style.color = '#f1c40f';
+            errorEl.innerHTML = '';
+
+            try {
+                // Dùng model list API để test
+                const testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`;
+                
+                const response = await fetch(testUrl);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusEl.innerHTML = '🟢 API hoạt động tốt';
+                    statusEl.style.color = '#00b894';
+                    errorEl.innerHTML = '✅ Kết nối thành công!';
+                    errorEl.style.color = '#00b894';
+                } else {
+                    const error = await response.text();
+                    statusEl.innerHTML = '🔴 Lỗi kết nối';
+                    statusEl.style.color = '#ff4444';
+                    errorEl.innerHTML = `❌ Lỗi ${response.status}: ${error.substring(0, 100)}`;
+                    errorEl.style.color = '#ff4444';
+                }
+            } catch (error) {
+                statusEl.innerHTML = '🔴 Không thể kết nối';
+                statusEl.style.color = '#ff4444';
+                errorEl.innerHTML = `❌ Lỗi: ${error.message}`;
+                errorEl.style.color = '#ff4444';
+            }
+        }
+
         function updateAPIStatus() {
             const statusEl = document.getElementById('apiStatus');
             if (GEMINI_API_KEY) {
-                statusEl.innerHTML = '🟢 Đã có API Key - Sẵn sàng';
-                statusEl.style.color = '#00b894';
+                statusEl.innerHTML = '🟡 Đã lưu API Key - Hãy kiểm tra kết nối';
+                statusEl.style.color = '#f1c40f';
             } else {
-                statusEl.innerHTML = '🔴 Chưa có API Key - Vui lòng nhập';
+                statusEl.innerHTML = '🔴 Chưa có API Key';
                 statusEl.style.color = '#ff4444';
             }
         }
@@ -637,15 +699,13 @@
                                 2️⃣ Đăng nhập bằng Google Account<br>
                                 3️⃣ Click "Get API Key" → "Create API Key"<br>
                                 4️⃣ Copy API Key và dán vào ô bên trái<br>
-                                5️⃣ Nhấn "Lưu API Key" và bắt đầu chat!<br>
+                                5️⃣ Nhấn "Lưu API Key" và "Kiểm tra kết nối"<br>
+                                6️⃣ Bắt đầu chat!<br>
                                 <br>
-                                <strong>✨ Tính năng:</strong><br>
-                                💬 Chat miễn phí không giới hạn<br>
-                                🖼️ Hỗ trợ phân tích hình ảnh (Vision)<br>
-                                💻 Viết code đa ngôn ngữ<br>
-                                📁 Đính kèm file văn bản<br>
-                                🌓 Chế độ sáng/tối<br>
-                                💾 Lưu lịch sử chat
+                                <strong>✨ Lưu ý:</strong><br>
+                                - API Key của bạn bắt đầu bằng "AIza..."<br>
+                                - Nếu thấy lỗi, hãy kiểm tra lại API Key<br>
+                                - Gemini 1.5 là phiên bản mới nhất
                             </div>
                         </div>
                     </div>
@@ -819,16 +879,9 @@
         async function callGeminiAPI(message, files) {
             try {
                 const model = document.getElementById('modelSelect').value;
-                const hasImages = files && files.some(f => f.type && f.type.startsWith('image/'));
                 
-                // Chọn model phù hợp
-                let apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/';
-                if (hasImages && model === 'gemini-pro-vision') {
-                    apiUrl += 'gemini-pro-vision:generateContent';
-                } else {
-                    apiUrl += 'gemini-pro:generateContent';
-                }
-                apiUrl += `?key=${GEMINI_API_KEY}`;
+                // URL đúng cho Gemini API
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
                 
                 // Chuẩn bị content parts
                 const parts = [];
@@ -869,7 +922,8 @@
                     }
                 };
                 
-                console.log('Sending to Gemini API:', requestBody);
+                console.log('Sending to Gemini API:', apiUrl);
+                console.log('Request body:', requestBody);
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -882,7 +936,19 @@
                 if (!response.ok) {
                     const errorData = await response.text();
                     console.error('Gemini API Error:', errorData);
-                    throw new Error(`API Error: ${response.status}`);
+                    
+                    // Parse lỗi để hiển thị thông báo dễ hiểu
+                    let errorMessage = `HTTP Error ${response.status}`;
+                    try {
+                        const errorJson = JSON.parse(errorData);
+                        if (errorJson.error && errorJson.error.message) {
+                            errorMessage = errorJson.error.message;
+                        }
+                    } catch (e) {
+                        errorMessage = errorData.substring(0, 100);
+                    }
+                    
+                    throw new Error(errorMessage);
                 }
                 
                 const data = await response.json();
@@ -893,7 +959,7 @@
                 } else if (data.error) {
                     throw new Error(data.error.message);
                 } else {
-                    throw new Error('Invalid response format');
+                    throw new Error('Invalid response format from Gemini API');
                 }
                 
             } catch (error) {
