@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek Pro - AI Chat Unlimited</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7f7f8;
+            --bg-sidebar: #f0f0f0;
+            --text-primary: #343541;
+            --text-secondary: #6e6e80;
+            --border-color: #e5e5e5;
+            --hover-color: #e5e5e5;
+            --message-user: #f7f7f8;
+            --message-ai: #ffffff;
+            --accent-color: #10a37f;
+            --shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-sidebar: #262626;
+            --text-primary: #ececf1;
+            --text-secondary: #a0a0a0;
+            --border-color: #4a4a4a;
+            --hover-color: #3d3d3d;
+            --message-user: #2d2d2d;
+            --message-ai: #1e1e1e;
+            --accent-color: #00b894;
+            --shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        .new-chat-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: opacity 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            opacity: 0.9;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin: 4px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-secondary);
+        }
+
+        .history-item:hover {
+            background-color: var(--hover-color);
+            color: var(--text-primary);
+        }
+
+        .history-item.active {
+            background-color: var(--hover-color);
+            color: var(--text-primary);
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 16px;
+        }
+
+        .theme-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .theme-btn:hover {
+            background-color: var(--hover-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-primary);
+            position: relative;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .messages-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .message {
+            padding: 20px;
+            margin: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .message.user {
+            background-color: var(--message-user);
+        }
+
+        .message.ai {
+            background-color: var(--message-ai);
+        }
+
+        .message-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 16px;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            background: var(--accent-color);
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .avatar.user {
+            background: #6e6e80;
+        }
+
+        .text {
+            flex: 1;
+            line-height: 1.6;
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .text pre {
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .text code {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        /* Input Area */
+        .input-area {
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            background-color: var(--bg-primary);
+        }
+
+        .input-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .input-box {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            outline: none;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .input-box[contenteditable="true"]:empty:before {
+            content: "Nhập tin nhắn... (Shift + Enter để xuống dòng, Enter để gửi)";
+            color: var(--text-secondary);
+        }
+
+        .input-tools {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tool-btn:hover {
+            background-color: var(--hover-color);
+        }
+
+        .send-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: auto;
+        }
+
+        .send-btn:hover {
+            opacity: 0.9;
+        }
+
+        .file-preview {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .file-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .remove-file {
+            cursor: pointer;
+            color: #ff4444;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="new-chat-btn" onclick="createNewChat()">
+                <span>+</span> New Chat
+            </button>
+            <div class="history-list" id="historyList"></div>
+            <div class="theme-toggle">
+                <span>Giao diện</span>
+                <div>
+                    <button class="theme-btn" onclick="setTheme('light')">Sáng</button>
+                    <button class="theme-btn" onclick="setTheme('dark')">Tối</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="chat-container" id="chatContainer">
+                <div class="messages-wrapper" id="messagesWrapper"></div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <div class="file-preview" id="filePreview"></div>
+                    
+                    <div class="input-box" 
+                         id="messageInput" 
+                         contenteditable="true"
+                         onkeydown="handleKeyDown(event)"></div>
+                    
+                    <div class="input-tools">
+                        <input type="file" id="fileInput" style="display: none" multiple onchange="handleFileSelect(event)">
+                        <button class="tool-btn" onclick="document.getElementById('fileInput').click()">
+                            📎 Attach
+                        </button>
+                        <button class="tool-btn" onclick="analyzeImage()">
+                            🖼️ Phân tích ảnh
+                        </button>
+                        <button class="tool-btn" onclick="writeCode()">
+                            💻 Viết code
+                        </button>
+                        <button class="send-btn" onclick="sendMessage()">
+                            Gửi →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentChat = {
+            id: 'default',
+            messages: []
+        };
+        let chats = JSON.parse(localStorage.getItem('chats')) || {};
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        let attachedFiles = [];
+        let isProcessing = false;
+
+        // DeepSeek API configuration
+        const DEEPSEEK_API_KEY = 'YOUR_DEEPSEEK_API_KEY'; // Thay bằng API key của bạn
+        const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setTheme(currentTheme);
+            loadChats();
+            if (!chats['default']) {
+                createNewChat();
+            } else {
+                loadChat('default');
+            }
+        });
+
+        // Theme functions
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        // Chat management
+        function createNewChat() {
+            const id = 'chat_' + Date.now();
+            const name = 'Chat ' + new Date().toLocaleString();
+            chats[id] = {
+                id: id,
+                name: name,
+                messages: [],
+                createdAt: new Date().toISOString()
+            };
+            saveChats();
+            loadChat(id);
+            renderHistory();
+        }
+
+        function loadChat(chatId) {
+            if (chats[chatId]) {
+                currentChat = chats[chatId];
+                renderMessages();
+                updateActiveHistory(chatId);
+            }
+        }
+
+        function saveChats() {
+            localStorage.setItem('chats', JSON.stringify(chats));
+        }
+
+        function loadChats() {
+            chats = JSON.parse(localStorage.getItem('chats')) || {};
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            Object.values(chats)
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .forEach(chat => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item' + (chat.id === currentChat.id ? ' active' : '');
+                    item.textContent = chat.name;
+                    item.onclick = () => loadChat(chat.id);
+                    historyList.appendChild(item);
+                });
+        }
+
+        function updateActiveHistory(chatId) {
+            document.querySelectorAll('.history-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent === chats[chatId]?.name) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Message handling
+        function renderMessages() {
+            const wrapper = document.getElementById('messagesWrapper');
+            wrapper.innerHTML = '';
+            
+            currentChat.messages.forEach(msg => {
+                addMessageToUI(msg.role, msg.content, msg.files);
+            });
+            
+            scrollToBottom();
+        }
+
+        function addMessageToUI(role, content, files = null) {
+            const wrapper = document.getElementById('messagesWrapper');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            let filesHtml = '';
+            if (files) {
+                filesHtml = '<div style="margin-top: 8px;">';
+                files.forEach(file => {
+                    if (file.type.startsWith('image/')) {
+                        filesHtml += `<img src="${file.data}" class="image-preview" alt="Attached image">`;
+                    } else {
+                        filesHtml += `<div class="file-item">📎 ${file.name}</div>`;
+                    }
+                });
+                filesHtml += '</div>';
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="avatar ${role}">${role === 'user' ? 'U' : 'AI'}</div>
+                    <div class="text">${formatContent(content)}</div>
+                </div>
+                ${filesHtml}
+            `;
+            
+            wrapper.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function formatContent(content) {
+            if (!content) return '';
+            
+            // Format code blocks
+            content = content.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+                return `<pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>`;
+            });
+            
+            // Format inline code
+            content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Format line breaks
+            content = content.replace(/\n/g, '<br>');
+            
+            return content;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // File handling
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    attachedFiles.push({
+                        name: file.name,
+                        type: file.type,
+                        size: file.size,
+                        data: e.target.result
+                    });
+                    renderFilePreview();
+                };
+                
+                if (file.type.startsWith('image/')) {
+                    reader.readAsDataURL(file);
+                } else {
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        function renderFilePreview() {
+            const preview = document.getElementById('filePreview');
+            preview.innerHTML = '';
+            
+            attachedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    ${file.type.startsWith('image/') ? '🖼️' : '📄'} ${file.name}
+                    <span class="remove-file" onclick="removeFile(${index})">×</span>
+                `;
+                preview.appendChild(item);
+            });
+        }
+
+        function removeFile(index) {
+            attachedFiles.splice(index, 1);
+            renderFilePreview();
+        }
+
+        // AI Functions
+        async function sendMessage() {
+            if (isProcessing) return;
+            
+            const input = document.getElementById('messageInput');
+            const message = input.innerText.trim();
+            
+            if (!message && attachedFiles.length === 0) return;
+            
+            // Add user message
+            const userMessage = {
+                role: 'user',
+                content: message,
+                files: attachedFiles.length > 0 ? [...attachedFiles] : null
+            };
+            
+            currentChat.messages.push(userMessage);
+            addMessageToUI('user', message, attachedFiles);
+            
+            // Clear input
+            input.innerText = '';
+            
+            // Process with AI
+            isProcessing = true;
+            showTypingIndicator();
+            
+            try {
+                const aiResponse = await callDeepSeekAPI(message, attachedFiles);
+                hideTypingIndicator();
+                
+                const aiMessage = {
+                    role: 'ai',
+                    content: aiResponse
+                };
+                
+                currentChat.messages.push(aiMessage);
+                addMessageToUI('ai', aiResponse);
+                
+                // Save to localStorage
+                saveChats();
+            } catch (error) {
+                hideTypingIndicator();
+                addMessageToUI('ai', 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.');
+                console.error('API Error:', error);
+            } finally {
+                isProcessing = false;
+                attachedFiles = [];
+                renderFilePreview();
+            }
+        }
+
+        async function callDeepSeekAPI(message, files) {
+            // Nếu không có API key, dùng mock response
+            if (DEEPSEEK_API_KEY === 'YOUR_DEEPSEEK_API_KEY') {
+                return mockAIResponse(message, files);
+            }
+
+            try {
+                const messages = [
+                    { role: 'system', content: 'Bạn là DeepSeek AI, trợ lý thông minh có thể viết code, phân tích ảnh và xử lý file.' },
+                    ...currentChat.messages.slice(-10).map(m => ({
+                        role: m.role === 'ai' ? 'assistant' : 'user',
+                        content: m.content
+                    }))
+                ];
+
+                if (files && files.length > 0) {
+                    const fileContent = files.map(f => 
+                        f.type.startsWith('image/') ? 
+                        `[Image: ${f.name}]` : 
+                        `[File: ${f.name}\nContent: ${f.data}]`
+                    ).join('\n');
+                    
+                    messages.push({
+                        role: 'user',
+                        content: `${message}\n\nAttached files:\n${fileContent}`
+                    });
+                }
+
+                const response = await fetch(DEEPSEEK_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: messages,
+                        temperature: 0.7,
+                        max_tokens: 4000,
+                        stream: false
+                    })
+                });
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('API call failed:', error);
+                return mockAIResponse(message, files);
+            }
+        }
+
+        function mockAIResponse(message, files) {
+            let response = 'Đây là phản hồi mẫu từ AI.\n\n';
+            
+            if (files && files.length > 0) {
+                response += '📎 Đã nhận được file:\n';
+                files.forEach(f => {
+                    response += `- ${f.name} (${(f.size / 1024).toFixed(2)}KB)\n`;
+                });
+                response += '\n';
+            }
+            
+            if (message.toLowerCase().includes('code') || message.toLowerCase().includes('viết')) {
+                response += '```javascript\n// Đây là code mẫu\nfunction helloWorld() {\n    console.log("Xin chào từ DeepSeek!");\n    return "Code không giới hạn!";\n}\n\n// Bạn có thể yêu cầu bất kỳ code nào\nhelloWorld();\n```';
+            } else {
+                response += 'Tôi có thể giúp bạn:\n';
+                response += '💻 Viết code không giới hạn\n';
+                response += '🖼️ Phân tích hình ảnh\n';
+                response += '📁 Xử lý file đính kèm\n';
+                response += '🎨 Tùy chỉnh giao diện\n';
+            }
+            
+            return response;
+        }
+
+        function analyzeImage() {
+            document.getElementById('messageInput').innerText = 'Hãy phân tích hình ảnh này cho tôi:';
+            document.getElementById('fileInput').click();
+        }
+
+        function writeCode() {
+            document.getElementById('messageInput').innerText = 'Viết code cho tôi: ';
+        }
+
+        // UI Helpers
+        function showTypingIndicator() {
+            const wrapper = document.getElementById('messagesWrapper');
+            const indicator = document.createElement('div');
+            indicator.className = 'message ai';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = `
+                <div class="message-content">
+                    <div class="avatar ai">AI</div>
+                    <div class="text">
+                        <div class="loading"></div> Đang suy nghĩ...
+                    </div>
+                </div>
+            `;
+            wrapper.appendChild(indicator);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Export/Load functions
+        function exportChat() {
+            const data = JSON.stringify(currentChat, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat_${Date.now()}.json`;
+            a.click();
+        }
+
+        function importChat() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const chat = JSON.parse(e.target.result);
+                        const id = 'chat_' + Date.now();
+                        chat.id = id;
+                        chat.name = 'Imported ' + new Date().toLocaleString();
+                        chats[id] = chat;
+                        saveChats();
+                        loadChat(id);
+                        renderHistory();
+                    } catch (error) {
+                        alert('File không hợp lệ');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+    </script>
+</body>
+</html>
