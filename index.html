@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini AI Chat - Miễn phí</title>
     <style>
-        /* Giữ nguyên CSS như cũ */
+        /* Giữ nguyên CSS của bạn */
         * {
             margin: 0;
             padding: 0;
@@ -258,23 +258,22 @@
             position: relative;
         }
 
-        .input-box {
-            background-color: var(--bg-secondary);
+        #messageInput {
+            width: 100%;
+            padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 12px;
-            min-height: 100px;
-            max-height: 300px;
-            overflow-y: auto;
-            outline: none;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
             font-size: 15px;
             line-height: 1.5;
-            color: var(--text-primary);
+            resize: none;
+            min-height: 100px;
+            max-height: 300px;
             margin-bottom: 8px;
         }
 
-        .input-box[contenteditable="true"]:empty:before {
-            content: "Nhập tin nhắn... (Shift + Enter để xuống dòng, Enter để gửi)";
+        #messageInput::placeholder {
             color: var(--text-secondary);
         }
 
@@ -315,6 +314,11 @@
 
         .send-btn:hover {
             opacity: 0.9;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .file-preview {
@@ -490,10 +494,7 @@
                 <div class="input-wrapper">
                     <div class="file-preview" id="filePreview"></div>
                     
-                    <div class="input-box" 
-                         id="messageInput" 
-                         contenteditable="true"
-                         onkeydown="handleKeyDown(event)"></div>
+                    <textarea id="messageInput" placeholder="Nhập tin nhắn... (Shift + Enter để xuống dòng, Enter để gửi)"></textarea>
                     
                     <div class="input-tools">
                         <input type="file" id="fileInput" style="display: none" multiple onchange="handleFileSelect(event)">
@@ -506,7 +507,7 @@
                         <button class="tool-btn" onclick="writeCode()">
                             💻 Viết code
                         </button>
-                        <button class="send-btn" onclick="sendMessage()">
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
                             Gửi →
                         </button>
                     </div>
@@ -534,10 +535,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             setTheme(currentTheme);
             loadChats();
-            if (!chats['default']) {
+            
+            // Kiểm tra và tạo chat mặc định nếu chưa có
+            const chatIds = Object.keys(chats);
+            if (chatIds.length === 0) {
                 createNewChat();
             } else {
-                loadChat('default');
+                // Load chat gần nhất
+                const sortedChats = Object.values(chats).sort((a, b) => 
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                loadChat(sortedChats[0].id);
             }
             
             // Set API key input value
@@ -545,6 +553,9 @@
             document.getElementById('modelSelect').value = currentModel;
             
             updateAPIStatus();
+            
+            // Add event listener for textarea
+            document.getElementById('messageInput').addEventListener('keydown', handleKeyDown);
         });
 
         // API Key management
@@ -575,11 +586,9 @@
             const errorEl = document.getElementById('apiError');
             
             statusEl.innerHTML = '🟡 Đang kiểm tra...';
-            statusEl.style.color = '#f1c40f';
             errorEl.innerHTML = '';
 
             try {
-                // Dùng model list API để test
                 const testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`;
                 
                 const response = await fetch(testUrl);
@@ -587,21 +596,15 @@
                 if (response.ok) {
                     const data = await response.json();
                     statusEl.innerHTML = '🟢 API hoạt động tốt';
-                    statusEl.style.color = '#00b894';
                     errorEl.innerHTML = '✅ Kết nối thành công!';
-                    errorEl.style.color = '#00b894';
                 } else {
                     const error = await response.text();
                     statusEl.innerHTML = '🔴 Lỗi kết nối';
-                    statusEl.style.color = '#ff4444';
-                    errorEl.innerHTML = `❌ Lỗi ${response.status}: ${error.substring(0, 100)}`;
-                    errorEl.style.color = '#ff4444';
+                    errorEl.innerHTML = `❌ Lỗi ${response.status}: Vui lòng kiểm tra lại API Key`;
                 }
             } catch (error) {
                 statusEl.innerHTML = '🔴 Không thể kết nối';
-                statusEl.style.color = '#ff4444';
                 errorEl.innerHTML = `❌ Lỗi: ${error.message}`;
-                errorEl.style.color = '#ff4444';
             }
         }
 
@@ -609,10 +612,8 @@
             const statusEl = document.getElementById('apiStatus');
             if (GEMINI_API_KEY) {
                 statusEl.innerHTML = '🟡 Đã lưu API Key - Hãy kiểm tra kết nối';
-                statusEl.style.color = '#f1c40f';
             } else {
                 statusEl.innerHTML = '🔴 Chưa có API Key';
-                statusEl.style.color = '#ff4444';
             }
         }
 
@@ -626,13 +627,21 @@
         // Chat management
         function createNewChat() {
             const id = 'chat_' + Date.now();
-            const name = 'Chat ' + new Date().toLocaleString();
+            const now = new Date();
+            const name = 'Chat ' + now.toLocaleString('vi-VN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit'
+            });
+            
             chats[id] = {
                 id: id,
                 name: name,
                 messages: [],
-                createdAt: new Date().toISOString()
+                createdAt: now.toISOString()
             };
+            
             saveChats();
             loadChat(id);
             renderHistory();
@@ -640,7 +649,7 @@
 
         function loadChat(chatId) {
             if (chats[chatId]) {
-                currentChat = chats[chatId];
+                currentChat = JSON.parse(JSON.stringify(chats[chatId])); // Deep clone
                 renderMessages();
                 updateActiveHistory(chatId);
             }
@@ -651,13 +660,19 @@
         }
 
         function loadChats() {
-            chats = JSON.parse(localStorage.getItem('chats')) || {};
+            try {
+                chats = JSON.parse(localStorage.getItem('chats')) || {};
+            } catch (e) {
+                chats = {};
+            }
             renderHistory();
         }
 
         function renderHistory() {
             const historyList = document.getElementById('historyList');
             historyList.innerHTML = '';
+            
+            if (Object.keys(chats).length === 0) return;
             
             Object.values(chats)
                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -684,7 +699,7 @@
             const wrapper = document.getElementById('messagesWrapper');
             wrapper.innerHTML = '';
             
-            if (currentChat.messages.length === 0) {
+            if (!currentChat.messages || currentChat.messages.length === 0) {
                 // Show welcome message
                 wrapper.innerHTML = `
                     <div class="message ai">
@@ -752,18 +767,21 @@
         function formatContent(content) {
             if (!content) return '';
             
+            // Escape HTML
+            const escaped = escapeHtml(content);
+            
             // Format code blocks
-            content = content.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+            let formatted = escaped.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
                 return `<pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>`;
             });
             
             // Format inline code
-            content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+            formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
             
             // Format line breaks
-            content = content.replace(/\n/g, '<br>');
+            formatted = formatted.replace(/\n/g, '<br>');
             
-            return content;
+            return formatted;
         }
 
         function escapeHtml(text) {
@@ -780,7 +798,14 @@
         // File handling
         function handleFileSelect(event) {
             const files = Array.from(event.target.files);
+            
             files.forEach(file => {
+                // Giới hạn kích thước file (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`File ${file.name} quá lớn (tối đa 5MB)`);
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     attachedFiles.push({
@@ -795,9 +820,23 @@
                 if (file.type.startsWith('image/')) {
                     reader.readAsDataURL(file);
                 } else {
+                    // Đọc text file với giới hạn
+                    reader.onload = (e) => {
+                        const content = e.target.result.substring(0, 5000); // Giới hạn 5000 ký tự
+                        attachedFiles.push({
+                            name: file.name,
+                            type: file.type,
+                            size: file.size,
+                            data: content
+                        });
+                        renderFilePreview();
+                    };
                     reader.readAsText(file);
                 }
             });
+            
+            // Clear input
+            event.target.value = '';
         }
 
         function renderFilePreview() {
@@ -830,9 +869,13 @@
             }
             
             const input = document.getElementById('messageInput');
-            const message = input.innerText.trim();
+            const message = input.value.trim();
             
             if (!message && attachedFiles.length === 0) return;
+            
+            // Disable send button
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
             
             // Add user message
             const userMessage = {
@@ -841,11 +884,15 @@
                 files: attachedFiles.length > 0 ? [...attachedFiles] : null
             };
             
+            if (!currentChat.messages) {
+                currentChat.messages = [];
+            }
+            
             currentChat.messages.push(userMessage);
             addMessageToUI('user', message, attachedFiles);
             
             // Clear input
-            input.innerText = '';
+            input.value = '';
             
             // Process with AI
             isProcessing = true;
@@ -864,15 +911,18 @@
                 addMessageToUI('ai', aiResponse);
                 
                 // Save to localStorage
+                chats[currentChat.id] = currentChat;
                 saveChats();
+                
             } catch (error) {
                 hideTypingIndicator();
-                addMessageToUI('ai', '❌ Lỗi: ' + error.message + '\n\nVui lòng kiểm tra API Key hoặc thử lại sau.');
+                addMessageToUI('ai', '❌ Lỗi: ' + error.message);
                 console.error('API Error:', error);
             } finally {
                 isProcessing = false;
                 attachedFiles = [];
                 renderFilePreview();
+                sendBtn.disabled = false;
             }
         }
 
@@ -906,7 +956,7 @@
                         } else {
                             // Xử lý text file
                             parts.push({ 
-                                text: `\n\n[File: ${file.name}]\nContent: ${file.data.substring(0, 2000)}` 
+                                text: `\n\n[File: ${file.name}]\nContent: ${file.data}` 
                             });
                         }
                     }
@@ -922,9 +972,6 @@
                     }
                 };
                 
-                console.log('Sending to Gemini API:', apiUrl);
-                console.log('Request body:', requestBody);
-                
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
@@ -934,30 +981,14 @@
                 });
                 
                 if (!response.ok) {
-                    const errorData = await response.text();
-                    console.error('Gemini API Error:', errorData);
-                    
-                    // Parse lỗi để hiển thị thông báo dễ hiểu
-                    let errorMessage = `HTTP Error ${response.status}`;
-                    try {
-                        const errorJson = JSON.parse(errorData);
-                        if (errorJson.error && errorJson.error.message) {
-                            errorMessage = errorJson.error.message;
-                        }
-                    } catch (e) {
-                        errorMessage = errorData.substring(0, 100);
-                    }
-                    
-                    throw new Error(errorMessage);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `HTTP Error ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log('Gemini Response:', data);
                 
                 if (data.candidates && data.candidates[0] && data.candidates[0].content) {
                     return data.candidates[0].content.parts[0].text;
-                } else if (data.error) {
-                    throw new Error(data.error.message);
                 } else {
                     throw new Error('Invalid response format from Gemini API');
                 }
@@ -969,12 +1000,12 @@
         }
 
         function analyzeImage() {
-            document.getElementById('messageInput').innerText = 'Hãy phân tích hình ảnh này cho tôi:';
+            document.getElementById('messageInput').value = 'Hãy phân tích hình ảnh này cho tôi:';
             document.getElementById('fileInput').click();
         }
 
         function writeCode() {
-            document.getElementById('messageInput').innerText = 'Viết code cho tôi: ';
+            document.getElementById('messageInput').value = 'Viết code cho tôi: ';
         }
 
         // UI Helpers
@@ -1016,6 +1047,7 @@
             a.href = url;
             a.download = `chat_${Date.now()}.json`;
             a.click();
+            URL.revokeObjectURL(url);
         }
 
         function importChat() {
@@ -1031,6 +1063,7 @@
                         const id = 'chat_' + Date.now();
                         chat.id = id;
                         chat.name = 'Imported ' + new Date().toLocaleString();
+                        chat.createdAt = new Date().toISOString();
                         chats[id] = chat;
                         saveChats();
                         loadChat(id);
