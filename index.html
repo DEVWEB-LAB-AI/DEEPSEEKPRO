@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free AI Chat - Hỗ trợ lập trình</title>
+    <title>Qwen Code AI - Lập trình trực tiếp</title>
     <style>
         * {
             margin: 0;
@@ -12,27 +12,31 @@
         }
 
         :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f7f7f8;
-            --text-primary: #2c3e50;
-            --text-secondary: #7f8c8d;
-            --border-color: #e5e5e5;
-            --accent-color: #10a37f;
-            --accent-hover: #0e8e6e;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-sidebar: #0f0f0f;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --border-color: #2a2a2a;
+            --accent-color: #7c3aed;
+            --accent-hover: #6d28d9;
+            --success-color: #10b981;
+            --error-color: #ef4444;
             --code-bg: #1e1e1e;
         }
 
-        [data-theme="dark"] {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --text-primary: #ececf1;
-            --text-secondary: #a0a0a0;
-            --border-color: #4a4a4a;
-            --accent-color: #00b894;
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7f7f8;
+            --bg-sidebar: #fafafa;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border-color: #e5e5e5;
+            --code-bg: #1e1e1e;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', monospace;
             background-color: var(--bg-primary);
             color: var(--text-primary);
             height: 100vh;
@@ -46,8 +50,8 @@
 
         /* Sidebar */
         .sidebar {
-            width: 280px;
-            background-color: var(--bg-secondary);
+            width: 300px;
+            background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -60,26 +64,27 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 8px;
+            padding: 8px;
         }
 
         .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #10a37f, #0e8e6e);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
             font-weight: bold;
-            color: white;
         }
 
         .logo-text {
             font-size: 18px;
             font-weight: 700;
-            color: var(--text-primary);
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .new-chat-btn {
@@ -88,44 +93,46 @@
             border: none;
             padding: 12px;
             border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
             cursor: pointer;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 8px;
             justify-content: center;
         }
 
-        .new-chat-btn:hover {
-            background: var(--accent-hover);
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .api-options {
+        .history-item {
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .history-item:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .api-config {
             border-top: 1px solid var(--border-color);
             padding-top: 16px;
-        }
-
-        .api-selector {
-            margin-bottom: 12px;
-        }
-
-        .api-selector select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            margin-top: 8px;
         }
 
         .api-key-input {
             width: 100%;
             padding: 10px;
+            background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            background: var(--bg-primary);
             color: var(--text-primary);
             margin: 8px 0;
         }
@@ -140,44 +147,12 @@
             cursor: pointer;
         }
 
-        .api-status {
-            font-size: 12px;
-            padding: 8px;
-            border-radius: 8px;
-            background: var(--bg-primary);
-            text-align: center;
-            margin-top: 8px;
-        }
-
-        .theme-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            background: var(--bg-primary);
-            border-radius: 8px;
-        }
-
-        .theme-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
         /* Main Content */
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-        }
-
-        .chat-header {
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--bg-primary);
         }
 
         .chat-container {
@@ -187,24 +162,18 @@
         }
 
         .messages-wrapper {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
         .message {
             margin-bottom: 24px;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.3s;
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message-content {
@@ -215,34 +184,31 @@
         .avatar {
             width: 36px;
             height: 36px;
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            font-weight: bold;
             flex-shrink: 0;
         }
 
         .avatar.user {
-            background: linear-gradient(135deg, #0066cc, #00a3ff);
-            color: white;
+            background: #7c3aed;
         }
 
         .avatar.ai {
-            background: linear-gradient(135deg, #10a37f, #0e8e6e);
-            color: white;
+            background: #10b981;
         }
 
         .text {
             flex: 1;
             line-height: 1.6;
-            font-size: 15px;
         }
 
         .text pre {
             background: var(--code-bg);
             padding: 16px;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow-x: auto;
             margin: 12px 0;
             position: relative;
@@ -261,6 +227,19 @@
             border: none;
             color: white;
             padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .run-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: var(--accent-color);
+            border: none;
+            color: white;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
@@ -269,23 +248,23 @@
         /* Input Area */
         .input-area {
             border-top: 1px solid var(--border-color);
-            padding: 20px 24px;
+            padding: 20px;
             background: var(--bg-primary);
         }
 
         .input-wrapper {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
         #messageInput {
             width: 100%;
             padding: 14px;
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            background: var(--bg-secondary);
             color: var(--text-primary);
-            font-size: 15px;
+            font-size: 14px;
             resize: none;
             min-height: 80px;
             font-family: inherit;
@@ -300,25 +279,21 @@
         .tool-btn {
             background: none;
             border: 1px solid var(--border-color);
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 13px;
+            color: var(--text-primary);
         }
 
         .send-btn {
             background: var(--accent-color);
             color: white;
             border: none;
-            padding: 8px 20px;
+            padding: 8px 24px;
             border-radius: 8px;
             cursor: pointer;
             margin-left: auto;
-        }
-
-        .send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
 
         .loading {
@@ -335,113 +310,91 @@
             to { transform: rotate(360deg); }
         }
 
-        .error-message {
-            color: #ef4444;
-            font-size: 12px;
-            padding: 8px;
-            background: rgba(239, 68, 68, 0.1);
+        .output-preview {
+            background: var(--code-bg);
             border-radius: 8px;
-            margin-top: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
     <div class="app">
-        <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">
-                <div class="logo-icon">🤖</div>
-                <div class="logo-text">Free AI Chat</div>
+                <div class="logo-icon">🐉</div>
+                <div class="logo-text">Qwen Code AI</div>
             </div>
             
             <button class="new-chat-btn" onclick="createNewChat()">
                 <span>+</span> New Chat
             </button>
             
-            <div class="api-options">
-                <div class="api-selector">
-                    <strong>🤖 Chọn API:</strong>
-                    <select id="apiType" onchange="switchAPI()">
-                        <option value="free">🆓 Free Mock API (No Key Needed)</option>
-                        <option value="gemini">🔑 Google Gemini (Free Tier)</option>
-                        <option value="openrouter">🌐 OpenRouter (Miễn phí)</option>
-                    </select>
-                </div>
-                
-                <div id="apiKeySection" style="display: none;">
-                    <input type="password" id="apiKeyInput" class="api-key-input" 
-                           placeholder="Enter API Key">
-                    <button class="save-btn" onclick="saveAPIKey()">Save API Key</button>
-                </div>
-                
-                <div id="freeInfo" class="api-status" style="background: rgba(16, 163, 127, 0.1); color: #10a37f;">
-                    🆕 Đang dùng Free Mock API - Không cần API Key!
-                </div>
-                
-                <div id="apiStatus" class="api-status"></div>
-            </div>
+            <div class="history-list" id="historyList"></div>
             
-            <div class="theme-toggle">
-                <span>🌓 Theme</span>
-                <div>
-                    <button class="theme-btn" onclick="setTheme('light')">Sáng</button>
-                    <button class="theme-btn" onclick="setTheme('dark')">Tối</button>
+            <div class="api-config">
+                <div style="margin-bottom: 12px;">
+                    <strong>⚙️ Cấu hình Qwen API</strong>
                 </div>
+                <input type="password" id="apiKey" class="api-key-input" 
+                       placeholder="Qwen API Key (từ dashscope.aliyuncs.com)">
+                <select id="modelSelect" class="api-key-input">
+                    <option value="qwen-max">Qwen Max (Mạnh nhất)</option>
+                    <option value="qwen-plus">Qwen Plus (Cân bằng)</option>
+                    <option value="qwen-turbo">Qwen Turbo (Nhanh)</option>
+                    <option value="qwen-coder">Qwen Coder (Chuyên code)</option>
+                </select>
+                <button class="save-btn" onclick="saveConfig()">Lưu cấu hình</button>
+                <div id="apiStatus" style="font-size: 12px; margin-top: 8px; text-align: center;"></div>
             </div>
         </div>
 
-        <!-- Main Content -->
         <div class="main-content">
-            <div class="chat-header">
-                <h2>💬 Free AI Assistant - Hỗ trợ lập trình</h2>
-            </div>
-            
             <div class="chat-container" id="chatContainer">
                 <div class="messages-wrapper" id="messagesWrapper">
                     <div class="message ai">
                         <div class="message-content">
-                            <div class="avatar ai">AI</div>
+                            <div class="avatar ai">🐉</div>
                             <div class="text">
-                                <h3>👋 Chào mừng bạn đến với Free AI Chat!</h3>
-                                <p>Tôi là trợ lý AI <strong>hoàn toàn miễn phí</strong>, hỗ trợ lập trình và giải đáp mọi thắc mắc.</p>
+                                <h2>✨ Qwen Code AI - Trợ lý lập trình thông minh</h2>
+                                <p>Được hỗ trợ bởi <strong>Alibaba Qwen</strong> - Model AI mạnh mẽ chuyên về code.</p>
                                 <br>
-                                <strong>🚀 Cách sử dụng:</strong><br>
-                                • <strong>Free Mock API</strong> (đang dùng): Không cần API Key, hoạt động ngay!<br>
-                                • <strong>Google Gemini</strong>: Có gói miễn phí 60 requests/phút<br>
-                                • <strong>OpenRouter</strong>: Tích hợp nhiều model AI<br>
+                                <strong>🚀 Tính năng đặc biệt:</strong><br>
+                                • 💻 <strong>Viết code</strong> - Sinh code theo yêu cầu<br>
+                                • 🔍 <strong>Debug lỗi</strong> - Phân tích và sửa lỗi<br>
+                                • ⚡ <strong>Run code trực tiếp</strong> - Chạy code ngay trong chat<br>
+                                • 📚 <strong>Giải thích thuật toán</strong> - Hiểu sâu về code<br>
                                 <br>
-                                <strong>✨ Tính năng:</strong><br>
-                                • 💻 Viết và giải thích code<br>
-                                • 📝 Phân tích file code<br>
-                                • 🌓 Giao diện sáng/tối<br>
-                                • 💾 Lưu lịch sử chat<br>
+                                <strong>📝 Cách dùng:</strong><br>
+                                1. Đăng ký API Key tại <a href="https://dashscope.aliyun.com/" target="_blank">Alibaba DashScope</a><br>
+                                2. Dán API Key vào ô bên trái<br>
+                                3. Bắt đầu chat - AI sẽ code cho bạn!<br>
                                 <br>
-                                <strong>💡 Gợi ý:</strong> Hãy thử hỏi tôi về code, giải thích thuật toán, hoặc debug lỗi!
+                                <strong>💡 Ví dụ:</strong><br>
+                                • "Viết hàm QuickSort bằng Python"<br>
+                                • "Giải thích cách hoạt động của React Hooks"<br>
+                                • "Debug code này: [dán code]"<br>
+                                • "Tạo một web component bằng JavaScript"<br>
+                                <br>
+                                <button class="tool-btn" onclick="exampleCode()" style="background: var(--accent-color); color: white;">🎯 Xem ví dụ code</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Input Area -->
             <div class="input-area">
                 <div class="input-wrapper">
-                    <textarea id="messageInput" placeholder="Nhập câu hỏi của bạn... (Enter để gửi, Shift+Enter xuống dòng)"></textarea>
+                    <textarea id="messageInput" placeholder="Nhập yêu cầu code của bạn... (Enter để gửi, Shift+Enter xuống dòng)"></textarea>
                     
                     <div class="input-tools">
-                        <input type="file" id="fileInput" style="display: none" onchange="handleFileSelect(event)">
-                        <button class="tool-btn" onclick="document.getElementById('fileInput').click()">
-                            📎 Attach Code
-                        </button>
-                        <button class="tool-btn" onclick="writeCode()">
-                            💻 Write Code
-                        </button>
-                        <button class="tool-btn" onclick="explainCode()">
-                            🔍 Explain Code
-                        </button>
-                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
-                            Send →
-                        </button>
+                        <button class="tool-btn" onclick="insertTemplate('python')">🐍 Python</button>
+                        <button class="tool-btn" onclick="insertTemplate('javascript')">📜 JavaScript</button>
+                        <button class="tool-btn" onclick="insertTemplate('html')">🌐 HTML/CSS</button>
+                        <button class="tool-btn" onclick="clearChat()">🗑️ Clear</button>
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">Gửi →</button>
                     </div>
                 </div>
             </div>
@@ -449,27 +402,22 @@
     </div>
 
     <script>
-        // State management
+        // Cấu hình
+        let QWEN_API_KEY = localStorage.getItem('qwen_api_key') || '';
+        let currentModel = localStorage.getItem('qwen_model') || 'qwen-coder';
         let currentChat = { id: 'default', messages: [] };
         let chats = {};
-        let attachedFile = null;
         let isProcessing = false;
-        let currentAPI = 'free'; // free, gemini, openrouter
-        
-        // API Keys
-        let GEMINI_API_KEY = localStorage.getItem('gemini_key') || '';
-        let OPENROUTER_KEY = localStorage.getItem('openrouter_key') || '';
-        
-        // Initialize
+
+        // Khởi tạo
         document.addEventListener('DOMContentLoaded', () => {
             loadChats();
-            loadTheme();
+            loadConfig();
             
             if (Object.keys(chats).length === 0) {
                 createNewChat();
             } else {
-                const lastChat = Object.values(chats)[0];
-                loadChat(lastChat.id);
+                loadChat(Object.values(chats)[0].id);
             }
             
             document.getElementById('messageInput').addEventListener('keydown', (e) => {
@@ -481,305 +429,329 @@
             
             updateAPIStatus();
         });
-        
-        function switchAPI() {
-            currentAPI = document.getElementById('apiType').value;
-            const apiKeySection = document.getElementById('apiKeySection');
-            const freeInfo = document.getElementById('freeInfo');
-            
-            if (currentAPI === 'free') {
-                apiKeySection.style.display = 'none';
-                freeInfo.style.display = 'block';
-                updateAPIStatus('🆕 Đang dùng Free Mock API - Hoạt động ngay!', 'success');
+
+        function loadConfig() {
+            document.getElementById('apiKey').value = QWEN_API_KEY;
+            document.getElementById('modelSelect').value = currentModel;
+        }
+
+        function saveConfig() {
+            QWEN_API_KEY = document.getElementById('apiKey').value.trim();
+            currentModel = document.getElementById('modelSelect').value;
+            localStorage.setItem('qwen_api_key', QWEN_API_KEY);
+            localStorage.setItem('qwen_model', currentModel);
+            updateAPIStatus();
+            alert('✅ Đã lưu cấu hình!');
+        }
+
+        function updateAPIStatus() {
+            const statusEl = document.getElementById('apiStatus');
+            if (QWEN_API_KEY) {
+                statusEl.innerHTML = '🟢 API Key đã sẵn sàng';
+                statusEl.style.color = '#10b981';
             } else {
-                apiKeySection.style.display = 'block';
-                freeInfo.style.display = 'none';
-                
-                if (currentAPI === 'gemini') {
-                    document.getElementById('apiKeyInput').placeholder = 'Enter Gemini API Key (get from makersuite.google.com)';
-                    updateAPIStatus('🔑 Cần Gemini API Key (có gói miễn phí 60 requests/phút)', 'info');
-                } else if (currentAPI === 'openrouter') {
-                    document.getElementById('apiKeyInput').placeholder = 'Enter OpenRouter API Key';
-                    updateAPIStatus('🌐 Cần OpenRouter API Key (hỗ trợ nhiều model)', 'info');
-                }
+                statusEl.innerHTML = '🔴 Chưa có API Key - Cần cấu hình';
+                statusEl.style.color = '#ef4444';
             }
         }
-        
-        function saveAPIKey() {
-            const key = document.getElementById('apiKeyInput').value.trim();
-            if (currentAPI === 'gemini') {
-                GEMINI_API_KEY = key;
-                localStorage.setItem('gemini_key', key);
-                updateAPIStatus('✅ Đã lưu Gemini API Key', 'success');
-            } else if (currentAPI === 'openrouter') {
-                OPENROUTER_KEY = key;
-                localStorage.setItem('openrouter_key', key);
-                updateAPIStatus('✅ Đã lưu OpenRouter API Key', 'success');
+
+        // Gọi Qwen API
+        async function callQwenAPI(message, history = []) {
+            if (!QWEN_API_KEY) {
+                throw new Error('Chưa cấu hình API Key');
             }
-        }
-        
-        function updateAPIStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('apiStatus');
-            if (message) {
-                statusDiv.textContent = message;
-                statusDiv.style.color = type === 'success' ? '#10a37f' : type === 'error' ? '#ef4444' : '#666';
-            }
-        }
-        
-        // Mock AI Response (Free - No API Key Needed)
-        async function getMockAIResponse(message, codeFile = null) {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+
+            const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
             
-            const lowerMsg = message.toLowerCase();
-            
-            // Code-related responses
-            if (lowerMsg.includes('code') || lowerMsg.includes('viết') && lowerMsg.includes('function')) {
-                return `Dưới đây là ví dụ code cho yêu cầu của bạn:
+            const messages = [
+                { role: 'system', content: 'Bạn là Qwen Code AI - chuyên gia lập trình. Hãy trả lời bằng tiếng Việt, code bằng định dạng markdown với language tag.' },
+                ...history.slice(-5),
+                { role: 'user', content: message }
+            ];
 
-\`\`\`javascript
-// Hàm xử lý theo yêu cầu
-function processData(input) {
-    try {
-        // Kiểm tra input
-        if (!input) {
-            throw new Error('Input không hợp lệ');
-        }
-        
-        // Xử lý dữ liệu
-        const result = {
-            status: 'success',
-            data: input,
-            timestamp: new Date().toISOString()
-        };
-        
-        return result;
-    } catch (error) {
-        return {
-            status: 'error',
-            message: error.message
-        };
-    }
-}
-
-// Ví dụ sử dụng
-const data = processData("Hello World");
-console.log(data);
-\`\`\`
-
-Bạn có muốn tôi giải thích code này không?`;
-            }
-            
-            if (lowerMsg.includes('debug') || lowerMsg.includes('lỗi')) {
-                return `🔍 **Hướng dẫn debug code:**
-
-1. **Kiểm tra lỗi cú pháp**:
-   - Đảm bảo đóng đủ ngoặc {}, [], ()
-   - Kiểm tra thiếu dấu ; hoặc , 
-   
-2. **Debug với console.log**:
-   \`\`\`javascript
-   console.log('Debug point 1:', variable);
-   console.log('Debug point 2:', typeof variable);
-   \`\`\`
-   
-3. **Sử dụng try-catch**:
-   \`\`\`javascript
-   try {
-       // Code cần debug
-   } catch (error) {
-       console.error('Error:', error.message);
-       console.error('Stack:', error.stack);
-   }
-   \`\`\`
-   
-4. **Kiểm tra kiểu dữ liệu**:
-   \`\`\`javascript
-   console.log(typeof variable);
-   console.log(Array.isArray(array));
-   \`\`\`
-
-Bạn đang gặp lỗi gì cụ thể? Hãy chia sẻ code để tôi giúp bạn debug chi tiết hơn!`;
-            }
-            
-            if (lowerMsg.includes('explain') || lowerMsg.includes('giải thích')) {
-                return `📖 **Cách giải thích code hiệu quả:**
-
-Khi giải thích code, tôi sẽ tập trung vào:
-
-1. **Mục đích**: Code này làm gì?
-2. **Luồng xử lý**: Các bước chính
-3. **Thuật toán**: Phương pháp xử lý
-4. **Độ phức tạp**: Big O notation
-5. **Cải tiến**: Có thể tối ưu như thế nào
-
-Ví dụ với code sort:
-\`\`\`javascript
-// Sắp xếp mảng số
-const numbers = [3, 1, 4, 1, 5];
-numbers.sort((a, b) => a - b);
-\`\`\`
-
-**Giải thích**:
-- Hàm sort sắp xếp mảng tại chỗ
-- Callback (a, b) => a - b tạo thứ tự tăng dần
-- Độ phức tạp O(n log n)
-
-Bạn muốn tôi giải thích code nào? Hãy gửi code lên nhé!`;
-            }
-            
-            if (codeFile) {
-                return `📄 **Phân tích file code:** ${codeFile.name}
-
-Tôi thấy bạn đã gửi file code. Để phân tích chi tiết, hãy cho tôi biết:
-
-1. **Mục đích** của file này là gì?
-2. **Ngôn ngữ** lập trình?
-3. **Vấn đề** bạn đang gặp phải?
-
-Nếu bạn muốn tôi:
-- 🔍 Giải thích code: "Explain this code"
-- 🐛 Debug lỗi: "Debug this code" 
-- ✨ Tối ưu hóa: "Optimize this code"
-- 📝 Thêm tính năng: "Add feature to..."
-
-Hãy nói rõ yêu cầu của bạn nhé!`;
-            }
-            
-            // General responses
-            return `Cảm ơn bạn đã hỏi! Tôi là AI hỗ trợ lập trình. 
-
-**Tôi có thể giúp bạn:**
-- 💻 Viết code theo yêu cầu
-- 🔍 Giải thích thuật toán
-- 🐛 Debug lỗi code
-- 📚 Học lập trình
-- 🚀 Tối ưu hiệu suất
-
-Ví dụ:
-- "Viết hàm tính Fibonacci"
-- "Giải thích cách hoạt động của Promise"
-- "Debug code này: [code]"
-- "Cách tối ưu vòng lặp trong JavaScript"
-
-Hãy cho tôi biết bạn cần giúp gì nhé! 😊`;
-        }
-        
-        // Call real API (Gemini or OpenRouter)
-        async function callRealAPI(message, codeFile) {
-            if (currentAPI === 'gemini') {
-                if (!GEMINI_API_KEY) {
-                    throw new Error('Chưa cấu hình Gemini API Key');
-                }
-                
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+            try {
                 const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: message + (codeFile ? `\n\nFile: ${codeFile.name}\nContent:\n${codeFile.content}` : '') }]
-                        }]
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error?.message || 'API Error');
-                }
-                
-                const data = await response.json();
-                return data.candidates[0].content.parts[0].text;
-            }
-            
-            if (currentAPI === 'openrouter') {
-                if (!OPENROUTER_KEY) {
-                    throw new Error('Chưa cấu hình OpenRouter API Key');
-                }
-                
-                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${OPENROUTER_KEY}`
+                        'Authorization': `Bearer ${QWEN_API_KEY}`
                     },
                     body: JSON.stringify({
-                        model: 'mistralai/mistral-7b-instruct:free',
-                        messages: [{ role: 'user', content: message }]
+                        model: currentModel,
+                        input: {
+                            messages: messages
+                        },
+                        parameters: {
+                            result_format: 'message',
+                            temperature: 0.7,
+                            max_tokens: 4096,
+                            top_p: 0.9
+                        }
                     })
                 });
-                
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || `HTTP ${response.status}`);
+                }
+
                 const data = await response.json();
-                return data.choices[0].message.content;
+                return data.output.choices[0].message.content;
+                
+            } catch (error) {
+                console.error('Qwen API Error:', error);
+                throw error;
             }
         }
+
+        // Fallback khi không có API Key (Mock Mode)
+        async function getMockResponse(message) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const lowerMsg = message.toLowerCase();
+            
+            if (lowerMsg.includes('quicksort') || lowerMsg.includes('sắp xếp')) {
+                return `Dưới đây là code QuickSort bằng Python:
+
+\`\`\`python
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort(left) + middle + quicksort(right)
+
+# Ví dụ sử dụng
+numbers = [3, 6, 8, 10, 1, 2, 1]
+sorted_numbers = quicksort(numbers)
+print(f"Kết quả: {sorted_numbers}")
+\`\`\`
+
+**Giải thích:**
+- **Độ phức tạp:** O(n log n) trung bình, O(n²) worst case
+- **Cách hoạt động:** Chọn pivot, chia mảng thành 3 phần (nhỏ hơn, bằng, lớn hơn)
+- **Ưu điểm:** In-place sorting, hiệu quả với dữ liệu lớn
+
+Bạn muốn tôi giải thích thêm về thuật toán này không?`;
+            }
+            
+            if (lowerMsg.includes('react') || lowerMsg.includes('hook')) {
+                return `# React Hooks - Giải thích chi tiết
+
+React Hooks là các hàm đặc biệt cho phép bạn sử dụng state và các tính năng React trong function components.
+
+## 1. **useState** - Quản lý state
+\`\`\`javascript
+import React, { useState } from 'react';
+
+function Counter() {
+    const [count, setCount] = useState(0);
+    
+    return (
+        <div>
+            <p>Count: {count}</p>
+            <button onClick={() => setCount(count + 1)}>
+                Tăng
+            </button>
+        </div>
+    );
+}
+\`\`\`
+
+## 2. **useEffect** - Side effects
+\`\`\`javascript
+useEffect(() => {
+    // Chạy sau mỗi lần render
+    document.title = \`Count: \${count}\`;
+    
+    // Cleanup function
+    return () => {
+        console.log('Cleanup');
+    };
+}, [count]); // Chỉ chạy khi count thay đổi
+\`\`\`
+
+## 3. **useContext** - Global state
+\`\`\`javascript
+const ThemeContext = React.createContext('light');
+
+function App() {
+    return (
+        <ThemeContext.Provider value="dark">
+            <Toolbar />
+        </ThemeContext.Provider>
+    );
+}
+
+function Toolbar() {
+    const theme = useContext(ThemeContext);
+    return <div>Current theme: {theme}</div>;
+}
+\`\`\`
+
+Bạn muốn tìm hiểu thêm về Hook nào?`;
+            }
+            
+            if (lowerMsg.includes('html') || lowerMsg.includes('css') || lowerMsg.includes('web')) {
+                return `# Tạo một component Web đẹp
+
+\`\`\`html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Component</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         
-        // Send message
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 350px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>✨ Card Component</h2>
+        <p>Đây là một card đẹp được tạo bằng HTML và CSS. Hover để xem hiệu ứng!</p>
+        <button class="btn" onclick="alert('Hello!')">Click me</button>
+    </div>
+</body>
+</html>
+\`\`\`
+
+Đây là một component card hiện đại. Bạn muốn tôi tùy chỉnh theo ý muốn không?`;
+            }
+            
+            return `Tôi là Qwen Code AI, chuyên hỗ trợ lập trình. 
+
+**Tôi có thể giúp bạn:**
+- ✍️ Viết code theo yêu cầu
+- 🐛 Debug và sửa lỗi
+- 📖 Giải thích thuật toán
+- ⚡ Tối ưu hiệu suất
+- 🎨 Thiết kế UI/UX
+
+**Hãy thử các yêu cầu sau:**
+- "Viết hàm tính Fibonacci"
+- "Giải thích OOP trong JavaScript"
+- "Tạo một website đơn giản"
+- "Debug code: [dán code]"
+
+Bạn muốn tôi giúp gì? 🚀`;
+        }
+
+        // Gửi tin nhắn
         async function sendMessage() {
             if (isProcessing) return;
             
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
-            if (!message && !attachedFile) return;
+            if (!message) return;
             
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
             
-            // Add user message
-            const userMessage = { role: 'user', content: message };
-            currentChat.messages.push(userMessage);
-            addMessageToUI('user', message || '📎 File attached');
-            
+            // Thêm tin nhắn user
+            addMessage('user', message);
+            currentChat.messages.push({ role: 'user', content: message });
             input.value = '';
-            const fileToProcess = attachedFile;
-            attachedFile = null;
             isProcessing = true;
             
-            showTypingIndicator();
+            showTyping();
             
             try {
                 let response;
-                
-                if (currentAPI === 'free') {
-                    response = await getMockAIResponse(message, fileToProcess);
+                if (QWEN_API_KEY) {
+                    response = await callQwenAPI(message, currentChat.messages);
                 } else {
-                    response = await callRealAPI(message, fileToProcess);
+                    response = await getMockResponse(message);
                 }
                 
-                hideTypingIndicator();
-                
-                const aiMessage = { role: 'ai', content: response };
-                currentChat.messages.push(aiMessage);
-                addMessageToUI('ai', response);
-                
+                hideTyping();
+                addMessage('ai', response);
+                currentChat.messages.push({ role: 'assistant', content: response });
                 saveCurrentChat();
                 
+                // Thêm nút run code cho code blocks
+                addRunButtons();
+                
             } catch (error) {
-                hideTypingIndicator();
-                addMessageToUI('ai', `❌ Lỗi: ${error.message}\n\n💡 Gợi ý: Hãy thử dùng Free Mock API (không cần key) bằng cách chọn ở sidebar!`);
+                hideTyping();
+                addMessage('ai', `❌ Lỗi: ${error.message}\n\n💡 Hãy kiểm tra lại API Key hoặc dùng Mock Mode (để trống API Key)`);
             } finally {
                 isProcessing = false;
                 sendBtn.disabled = false;
             }
         }
-        
-        // Helper functions
-        function addMessageToUI(role, content) {
+
+        function addMessage(role, content) {
             const wrapper = document.getElementById('messagesWrapper');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
             
             let formattedContent = content
                 .replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-                    return `<pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>`;
+                    return `<pre data-lang="${lang}"><code class="language-${lang}">${escapeHtml(code)}</code></pre>`;
                 })
                 .replace(/`([^`]+)`/g, '<code>$1</code>')
                 .replace(/\n/g, '<br>')
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>');
             
             messageDiv.innerHTML = `
                 <div class="message-content">
-                    <div class="avatar ${role}">${role === 'user' ? 'U' : 'AI'}</div>
+                    <div class="avatar ${role}">${role === 'user' ? '👤' : '🐉'}</div>
                     <div class="text">${formattedContent}</div>
                 </div>
             `;
@@ -787,18 +759,18 @@ Hãy cho tôi biết bạn cần giúp gì nhé! 😊`;
             wrapper.appendChild(messageDiv);
             scrollToBottom();
             
-            // Add copy buttons
+            // Thêm nút copy
             setTimeout(() => {
                 document.querySelectorAll('pre').forEach(pre => {
                     if (!pre.querySelector('.copy-btn')) {
                         const btn = document.createElement('button');
                         btn.className = 'copy-btn';
-                        btn.textContent = 'Copy';
+                        btn.textContent = '📋 Copy';
                         btn.onclick = () => {
-                            const code = pre.querySelector('code')?.textContent || pre.textContent;
+                            const code = pre.querySelector('code').textContent;
                             navigator.clipboard.writeText(code);
-                            btn.textContent = 'Copied!';
-                            setTimeout(() => btn.textContent = 'Copy', 2000);
+                            btn.textContent = '✅ Copied!';
+                            setTimeout(() => btn.textContent = '📋 Copy', 2000);
                         };
                         pre.appendChild(btn);
                     }
@@ -806,64 +778,91 @@ Hãy cho tôi biết bạn cần giúp gì nhé! 😊`;
             }, 100);
         }
         
+        function addRunButtons() {
+            setTimeout(() => {
+                document.querySelectorAll('pre').forEach(pre => {
+                    if (!pre.querySelector('.run-btn')) {
+                        const lang = pre.getAttribute('data-lang') || '';
+                        if (lang === 'javascript' || lang === 'js' || lang === 'html') {
+                            const runBtn = document.createElement('button');
+                            runBtn.className = 'run-btn';
+                            runBtn.textContent = '▶ Run';
+                            runBtn.onclick = () => runCode(pre);
+                            pre.appendChild(runBtn);
+                        }
+                    }
+                });
+            }, 100);
+        }
+        
+        function runCode(preElement) {
+            const code = preElement.querySelector('code').textContent;
+            const lang = preElement.getAttribute('data-lang') || '';
+            
+            if (lang === 'html') {
+                const win = window.open();
+                win.document.write(code);
+                win.document.close();
+            } else if (lang === 'javascript' || lang === 'js') {
+                try {
+                    const result = eval(code);
+                    const outputDiv = document.createElement('div');
+                    outputDiv.className = 'output-preview';
+                    outputDiv.innerHTML = `<strong>📤 Output:</strong><br>${result}`;
+                    preElement.parentNode.insertBefore(outputDiv, preElement.nextSibling);
+                    setTimeout(() => outputDiv.remove(), 5000);
+                } catch (error) {
+                    alert(`Lỗi: ${error.message}`);
+                }
+            }
+        }
+
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         function scrollToBottom() {
             const container = document.getElementById('chatContainer');
             container.scrollTop = container.scrollHeight;
         }
-        
-        function showTypingIndicator() {
+
+        function showTyping() {
             const wrapper = document.getElementById('messagesWrapper');
             const indicator = document.createElement('div');
             indicator.className = 'message ai';
             indicator.id = 'typingIndicator';
             indicator.innerHTML = `
                 <div class="message-content">
-                    <div class="avatar ai">AI</div>
+                    <div class="avatar ai">🐉</div>
                     <div class="text"><div class="loading"></div> Đang suy nghĩ...</div>
                 </div>
             `;
             wrapper.appendChild(indicator);
             scrollToBottom();
         }
-        
-        function hideTypingIndicator() {
+
+        function hideTyping() {
             const indicator = document.getElementById('typingIndicator');
             if (indicator) indicator.remove();
         }
-        
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file && (file.name.endsWith('.js') || file.name.endsWith('.py') || file.name.endsWith('.html') || file.name.endsWith('.css'))) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    attachedFile = {
-                        name: file.name,
-                        content: e.target.result.substring(0, 5000)
-                    };
-                    updateAPIStatus(`📎 Đã đính kèm: ${file.name}`, 'success');
-                };
-                reader.readAsText(file);
-            } else {
-                updateAPIStatus('⚠️ Chỉ hỗ trợ file code (.js, .py, .html, .css)', 'error');
-            }
-        }
-        
-        function writeCode() {
-            document.getElementById('messageInput').value = 'Viết code cho tôi: ';
+
+        function insertTemplate(type) {
+            const templates = {
+                python: 'Viết một hàm Python để tính Fibonacci:',
+                javascript: 'Viết một function JavaScript để sort mảng:',
+                html: 'Tạo một trang web đẹp với HTML/CSS:'
+            };
+            document.getElementById('messageInput').value = templates[type];
             document.getElementById('messageInput').focus();
         }
-        
-        function explainCode() {
-            document.getElementById('messageInput').value = 'Hãy giải thích code này:\n\n```\n\n```';
+
+        function exampleCode() {
+            document.getElementById('messageInput').value = 'Viết một website portfolio đơn giản với HTML/CSS/JS';
             document.getElementById('messageInput').focus();
         }
-        
+
         function createNewChat() {
             const id = 'chat_' + Date.now();
             chats[id] = {
@@ -874,87 +873,59 @@ Hãy cho tôi biết bạn cần giúp gì nhé! 😊`;
             saveChats();
             loadChat(id);
         }
-        
+
         function loadChat(id) {
             if (chats[id]) {
                 currentChat = JSON.parse(JSON.stringify(chats[id]));
                 renderMessages();
             }
         }
-        
+
         function saveCurrentChat() {
             chats[currentChat.id] = JSON.parse(JSON.stringify(currentChat));
             saveChats();
         }
-        
+
         function saveChats() {
-            localStorage.setItem('chats', JSON.stringify(chats));
+            localStorage.setItem('qwen_chats', JSON.stringify(chats));
             renderHistory();
         }
-        
+
         function loadChats() {
-            chats = JSON.parse(localStorage.getItem('chats')) || {};
+            chats = JSON.parse(localStorage.getItem('qwen_chats')) || {};
         }
-        
+
         function renderHistory() {
             const historyList = document.getElementById('historyList');
-            if (historyList) {
-                historyList.innerHTML = '';
-                Object.values(chats).forEach(chat => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    item.textContent = chat.name;
-                    item.onclick = () => loadChat(chat.id);
-                    historyList.appendChild(item);
-                });
-            }
+            historyList.innerHTML = '';
+            Object.values(chats).reverse().forEach(chat => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.textContent = chat.name;
+                item.onclick = () => loadChat(chat.id);
+                historyList.appendChild(item);
+            });
         }
-        
+
         function renderMessages() {
             const wrapper = document.getElementById('messagesWrapper');
             wrapper.innerHTML = '';
             
-            if (!currentChat.messages || currentChat.messages.length === 0) {
-                // Show welcome message
-                wrapper.innerHTML = `
-                    <div class="message ai">
-                        <div class="message-content">
-                            <div class="avatar ai">AI</div>
-                            <div class="text">
-                                <h3>👋 Chào mừng bạn đến với Free AI Chat!</h3>
-                                <p>Tôi là trợ lý AI <strong>hoàn toàn miễn phí</strong>, hỗ trợ lập trình và giải đáp mọi thắc mắc.</p>
-                                <br>
-                                <strong>🚀 Cách sử dụng:</strong><br>
-                                • <strong>Free Mock API</strong> (đang dùng): Không cần API Key, hoạt động ngay!<br>
-                                • <strong>Google Gemini</strong>: Có gói miễn phí 60 requests/phút<br>
-                                • <strong>OpenRouter</strong>: Tích hợp nhiều model AI<br>
-                                <br>
-                                <strong>✨ Tính năng:</strong><br>
-                                • 💻 Viết và giải thích code<br>
-                                • 📝 Phân tích file code<br>
-                                • 🌓 Giao diện sáng/tối<br>
-                                • 💾 Lưu lịch sử chat<br>
-                                <br>
-                                <strong>💡 Gợi ý:</strong> Hãy thử hỏi tôi về code, giải thích thuật toán, hoặc debug lỗi!
-                            </div>
-                        </div>
-                    </div>
-                `;
+            if (currentChat.messages.length === 0) {
+                location.reload();
             } else {
                 currentChat.messages.forEach(msg => {
-                    addMessageToUI(msg.role, msg.content);
+                    addMessage(msg.role, msg.content);
                 });
             }
         }
-        
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-        }
-        
-        function loadTheme() {
-            const theme = localStorage.getItem('theme') || 'light';
-            setTheme(theme);
+
+        function clearChat() {
+            if (confirm('Xóa toàn bộ chat?')) {
+                currentChat.messages = [];
+                saveCurrentChat();
+                renderMessages();
+            }
         }
     </script>
 </body>
