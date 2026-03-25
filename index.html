@@ -3,46 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini AI Chat - Miễn phí</title>
+    <title>DeepSeek AI Chat - Hỗ trợ lập trình</title>
     <style>
-        /* Giữ nguyên CSS của bạn */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            transition: all 0.2s ease;
         }
 
         :root {
             --bg-primary: #ffffff;
             --bg-secondary: #f7f7f8;
-            --bg-sidebar: #f0f0f0;
-            --text-primary: #343541;
-            --text-secondary: #6e6e80;
-            --border-color: #e5e5e5;
-            --hover-color: #e5e5e5;
-            --message-user: #f7f7f8;
+            --bg-sidebar: #fafafa;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --border-color: #e9ecef;
+            --hover-color: #f1f3f5;
+            --message-user: #f8f9fa;
             --message-ai: #ffffff;
-            --accent-color: #10a37f;
-            --shadow: 0 2px 6px rgba(0,0,0,0.05);
+            --accent-color: #0066cc;
+            --accent-hover: #0052a3;
+            --shadow: 0 1px 3px rgba(0,0,0,0.05);
+            --code-bg: #1e1e1e;
         }
 
         [data-theme="dark"] {
             --bg-primary: #1a1a1a;
             --bg-secondary: #2d2d2d;
-            --bg-sidebar: #262626;
-            --text-primary: #ececf1;
-            --text-secondary: #a0a0a0;
-            --border-color: #4a4a4a;
+            --bg-sidebar: #252525;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --border-color: #3d3d3d;
             --hover-color: #3d3d3d;
             --message-user: #2d2d2d;
-            --message-ai: #1e1e1e;
-            --accent-color: #00b894;
-            --shadow: 0 2px 6px rgba(0,0,0,0.2);
+            --message-ai: #252525;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --code-bg: #0f0f0f;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-primary);
             height: 100vh;
@@ -61,44 +63,89 @@
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            padding: 16px;
+            padding: 20px;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 8px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #0066cc, #00a3ff);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0066cc, #00a3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .new-chat-btn {
             background: var(--accent-color);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 12px 16px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            transition: opacity 0.2s;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 8px;
         }
 
         .new-chat-btn:hover {
-            opacity: 0.9;
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .history-header {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            padding: 8px;
+            margin-top: 8px;
         }
 
         .history-list {
             flex: 1;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .history-item {
-            padding: 10px;
-            margin: 4px 0;
-            border-radius: 6px;
+            padding: 10px 12px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            color: var(--text-secondary);
         }
 
         .history-item:hover {
@@ -108,60 +155,111 @@
 
         .history-item.active {
             background-color: var(--hover-color);
-            color: var(--text-primary);
+            color: var(--accent-color);
             border-left: 3px solid var(--accent-color);
+        }
+
+        /* API Config */
+        .api-config {
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .config-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .model-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .save-api-btn, .test-api-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .save-api-btn {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .test-api-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .save-api-btn:hover, .test-api-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .api-status {
+            font-size: 12px;
+            padding: 8px;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            text-align: center;
         }
 
         .theme-toggle {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 0;
-            border-top: 1px solid var(--border-color);
-            margin-top: 16px;
+            padding: 8px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+        }
+
+        .theme-buttons {
+            display: flex;
+            gap: 8px;
         }
 
         .theme-btn {
-            background: none;
+            background: var(--bg-primary);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
             padding: 6px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .theme-btn:hover {
-            background-color: var(--hover-color);
-        }
-
-        /* API Key Input */
-        .api-key-container {
-            padding: 12px 0;
-            border-top: 1px solid var(--border-color);
-            margin-top: 8px;
-        }
-
-        .api-key-input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-
-        .save-api-btn {
-            width: 100%;
-            padding: 6px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
+            background: var(--hover-color);
         }
 
         /* Main Content */
@@ -170,7 +268,17 @@
             display: flex;
             flex-direction: column;
             background-color: var(--bg-primary);
-            position: relative;
+        }
+
+        .chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+        }
+
+        .chat-header h2 {
+            font-size: 18px;
+            font-weight: 600;
         }
 
         .chat-container {
@@ -180,106 +288,131 @@
         }
 
         .messages-wrapper {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            width: 100%;
+            padding: 0 24px;
         }
 
         .message {
-            padding: 20px;
-            margin: 8px 0;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            animation: fadeIn 0.3s ease;
         }
 
-        .message.user {
-            background-color: var(--message-user);
-        }
-
-        .message.ai {
-            background-color: var(--message-ai);
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message-content {
-            max-width: 800px;
-            margin: 0 auto;
             display: flex;
             gap: 16px;
         }
 
         .avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 4px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            background: var(--accent-color);
-            color: white;
+            font-weight: 600;
+            font-size: 14px;
             flex-shrink: 0;
         }
 
         .avatar.user {
-            background: #6e6e80;
+            background: linear-gradient(135deg, #0066cc, #00a3ff);
+            color: white;
+        }
+
+        .avatar.ai {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
         }
 
         .text {
             flex: 1;
             line-height: 1.6;
             font-size: 15px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
         }
 
         .text pre {
-            background: var(--bg-secondary);
-            padding: 12px;
-            border-radius: 8px;
+            background: var(--code-bg);
+            padding: 16px;
+            border-radius: 12px;
             overflow-x: auto;
-            margin: 8px 0;
-            border: 1px solid var(--border-color);
+            margin: 12px 0;
+            position: relative;
         }
 
         .text code {
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
+            font-family: 'Fira Code', 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .text p {
+            margin-bottom: 12px;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.2);
         }
 
         /* Input Area */
         .input-area {
             border-top: 1px solid var(--border-color);
-            padding: 20px;
-            background-color: var(--bg-primary);
+            padding: 20px 24px;
+            background: var(--bg-primary);
         }
 
         .input-wrapper {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            position: relative;
         }
 
         #messageInput {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            background-color: var(--bg-secondary);
+            border-radius: 16px;
+            background: var(--bg-secondary);
             color: var(--text-primary);
             font-size: 15px;
             line-height: 1.5;
             resize: none;
-            min-height: 100px;
-            max-height: 300px;
-            margin-bottom: 8px;
+            min-height: 80px;
+            font-family: inherit;
         }
 
-        #messageInput::placeholder {
-            color: var(--text-secondary);
+        #messageInput:focus {
+            outline: none;
+            border-color: var(--accent-color);
         }
 
         .input-tools {
             display: flex;
-            gap: 8px;
+            gap: 12px;
+            margin-top: 12px;
             align-items: center;
             flex-wrap: wrap;
         }
@@ -288,81 +421,66 @@
             background: none;
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 13px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            transition: all 0.2s;
         }
 
         .tool-btn:hover {
-            background-color: var(--hover-color);
+            background: var(--hover-color);
+            transform: translateY(-1px);
         }
 
         .send-btn {
             background: var(--accent-color);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 8px 20px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
             margin-left: auto;
+            transition: all 0.2s;
         }
 
         .send-btn:hover {
-            opacity: 0.9;
+            background: var(--accent-hover);
+            transform: translateY(-1px);
         }
 
         .send-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        .file-preview {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 8px;
-        }
-
-        .file-item {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .remove-file {
-            cursor: pointer;
-            color: #ff4444;
+            transform: none;
         }
 
         .loading {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid var(--border-color);
+            border: 2px solid var(--border-color);
             border-radius: 50%;
             border-top-color: var(--accent-color);
-            animation: spin 1s linear infinite;
+            animation: spin 0.6s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .image-preview {
-            max-width: 200px;
-            max-height: 200px;
+        .error-message {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(239, 68, 68, 0.1);
             border-radius: 8px;
-            margin: 8px 0;
         }
 
         /* Scrollbar */
@@ -383,106 +501,76 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-secondary);
         }
-
-        .api-status {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            margin-top: 8px;
-        }
-
-        .model-select {
-            width: 100%;
-            padding: 6px;
-            margin-top: 8px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-        }
-
-        .test-api-btn {
-            width: 100%;
-            padding: 6px;
-            background: #4a90e2;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 8px;
-        }
-
-        .error-message {
-            color: #ff4444;
-            font-size: 12px;
-            margin-top: 4px;
-            word-break: break-word;
-        }
     </style>
 </head>
 <body>
     <div class="app">
         <!-- Sidebar -->
         <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">DS</div>
+                <div class="logo-text">DeepSeek AI</div>
+            </div>
+            
             <button class="new-chat-btn" onclick="createNewChat()">
                 <span>+</span> New Chat
             </button>
+            
+            <div class="history-header">Recent Chats</div>
             <div class="history-list" id="historyList"></div>
             
-            <!-- API Configuration -->
-            <div class="api-key-container">
-                <input type="text" id="apiKeyInput" class="api-key-input" 
-                       placeholder="Nhập Gemini API Key của bạn" value="">
+            <div class="api-config">
+                <div class="config-title">⚙️ API Configuration</div>
+                <input type="password" id="apiKeyInput" class="api-key-input" 
+                       placeholder="DeepSeek API Key" value="">
                 <select id="modelSelect" class="model-select">
-                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Mới nhất)</option>
-                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Nhanh)</option>
-                    <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                    <option value="deepseek-chat">DeepSeek Chat</option>
+                    <option value="deepseek-coder">DeepSeek Coder</option>
                 </select>
-                <button class="save-api-btn" onclick="saveAPIKey()">Lưu API Key</button>
-                <button class="test-api-btn" onclick="testAPIConnection()">🔌 Kiểm tra kết nối</button>
-                <div id="apiError" class="error-message"></div>
+                <button class="save-api-btn" onclick="saveAPIKey()">Save API Key</button>
+                <button class="test-api-btn" onclick="testAPIConnection()">Test Connection</button>
+                <div id="apiError" class="error-message" style="display: none;"></div>
+                <div class="api-status" id="apiStatus">
+                    🔴 No API Key
+                </div>
             </div>
             
             <div class="theme-toggle">
-                <span>Giao diện</span>
-                <div>
-                    <button class="theme-btn" onclick="setTheme('light')">Sáng</button>
-                    <button class="theme-btn" onclick="setTheme('dark')">Tối</button>
+                <span>🌓 Theme</span>
+                <div class="theme-buttons">
+                    <button class="theme-btn" onclick="setTheme('light')">Light</button>
+                    <button class="theme-btn" onclick="setTheme('dark')">Dark</button>
                 </div>
-            </div>
-            <div class="api-status" id="apiStatus">
-                🔴 Chưa có API Key
             </div>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
+            <div class="chat-header">
+                <h2>DeepSeek AI Assistant</h2>
+            </div>
+            
             <div class="chat-container" id="chatContainer">
                 <div class="messages-wrapper" id="messagesWrapper">
-                    <!-- Welcome message -->
                     <div class="message ai">
                         <div class="message-content">
-                            <div class="avatar ai">AI</div>
+                            <div class="avatar ai">DS</div>
                             <div class="text">
-                                <h3>🌟 Chào mừng bạn đến với Gemini AI Chat!</h3>
-                                <p>Đây là phiên bản <strong>hoàn toàn miễn phí</strong> sử dụng Google Gemini API.</p>
+                                <h3>👋 Welcome to DeepSeek AI!</h3>
+                                <p>I'm an AI assistant powered by DeepSeek, specialized in coding and problem-solving.</p>
                                 <br>
-                                <strong>📝 Hướng dẫn sử dụng:</strong><br>
-                                1️⃣ Truy cập <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
-                                2️⃣ Đăng nhập bằng Google Account<br>
-                                3️⃣ Click "Get API Key" → "Create API Key"<br>
-                                4️⃣ Copy API Key và dán vào ô bên trái<br>
-                                5️⃣ Nhấn "Lưu API Key" và "Kiểm tra kết nối"<br>
-                                6️⃣ Bắt đầu chat!<br>
+                                <strong>🚀 Quick Start:</strong><br>
+                                1. Get your API key from <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a><br>
+                                2. Enter your API key in the sidebar<br>
+                                3. Choose model (DeepSeek Chat or Coder)<br>
+                                4. Start chatting!<br>
                                 <br>
-                                <strong>✨ Lưu ý:</strong><br>
-                                - API Key của bạn bắt đầu bằng "AIza..."<br>
-                                - Nếu thấy lỗi, hãy kiểm tra lại API Key<br>
-                                - Gemini 1.5 là phiên bản mới nhất
+                                <strong>💡 Features:</strong><br>
+                                • Code generation and explanation<br>
+                                • Problem solving<br>
+                                • File analysis<br>
+                                • Conversation history<br>
+                                • Dark/Light theme
                             </div>
                         </div>
                     </div>
@@ -492,23 +580,21 @@
             <!-- Input Area -->
             <div class="input-area">
                 <div class="input-wrapper">
-                    <div class="file-preview" id="filePreview"></div>
-                    
-                    <textarea id="messageInput" placeholder="Nhập tin nhắn... (Shift + Enter để xuống dòng, Enter để gửi)"></textarea>
+                    <textarea id="messageInput" placeholder="Ask me anything... (Press Enter to send, Shift+Enter for new line)"></textarea>
                     
                     <div class="input-tools">
                         <input type="file" id="fileInput" style="display: none" multiple onchange="handleFileSelect(event)">
                         <button class="tool-btn" onclick="document.getElementById('fileInput').click()">
-                            📎 Attach
-                        </button>
-                        <button class="tool-btn" onclick="analyzeImage()">
-                            🖼️ Phân tích ảnh
+                            📎 Attach File
                         </button>
                         <button class="tool-btn" onclick="writeCode()">
-                            💻 Viết code
+                            💻 Write Code
+                        </button>
+                        <button class="tool-btn" onclick="explainCode()">
+                            🔍 Explain Code
                         </button>
                         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
-                            Gửi →
+                            Send →
                         </button>
                     </div>
                 </div>
@@ -518,260 +604,286 @@
 
     <script>
         // State management
-        let currentChat = {
-            id: 'default',
-            messages: []
-        };
-        let chats = JSON.parse(localStorage.getItem('chats')) || {};
-        let currentTheme = localStorage.getItem('theme') || 'light';
+        let currentChat = { id: 'default', messages: [], name: 'New Chat' };
+        let chats = {};
         let attachedFiles = [];
         let isProcessing = false;
         
         // API Configuration
-        let GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
-        let currentModel = localStorage.getItem('gemini_model') || 'gemini-1.5-pro';
+        let DEEPSEEK_API_KEY = localStorage.getItem('deepseek_api_key') || '';
+        let currentModel = localStorage.getItem('deepseek_model') || 'deepseek-chat';
+        
+        // DeepSeek API URL
+        const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            setTheme(currentTheme);
             loadChats();
+            loadTheme();
+            loadAPIKey();
             
-            // Kiểm tra và tạo chat mặc định nếu chưa có
-            const chatIds = Object.keys(chats);
-            if (chatIds.length === 0) {
+            if (Object.keys(chats).length === 0) {
                 createNewChat();
             } else {
-                // Load chat gần nhất
-                const sortedChats = Object.values(chats).sort((a, b) => 
-                    new Date(b.createdAt) - new Date(a.createdAt)
-                );
-                loadChat(sortedChats[0].id);
+                const lastChat = Object.values(chats).sort((a, b) => 
+                    new Date(b.updatedAt) - new Date(a.updatedAt)
+                )[0];
+                loadChat(lastChat.id);
             }
-            
-            // Set API key input value
-            document.getElementById('apiKeyInput').value = GEMINI_API_KEY;
-            document.getElementById('modelSelect').value = currentModel;
             
             updateAPIStatus();
             
-            // Add event listener for textarea
+            // Event listeners
             document.getElementById('messageInput').addEventListener('keydown', handleKeyDown);
         });
-
+        
+        function loadAPIKey() {
+            document.getElementById('apiKeyInput').value = DEEPSEEK_API_KEY;
+            document.getElementById('modelSelect').value = currentModel;
+        }
+        
         // API Key management
         function saveAPIKey() {
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             const model = document.getElementById('modelSelect').value;
             
             if (apiKey) {
-                GEMINI_API_KEY = apiKey;
+                DEEPSEEK_API_KEY = apiKey;
                 currentModel = model;
-                localStorage.setItem('gemini_api_key', apiKey);
-                localStorage.setItem('gemini_model', model);
+                localStorage.setItem('deepseek_api_key', apiKey);
+                localStorage.setItem('deepseek_model', model);
                 updateAPIStatus();
-                document.getElementById('apiError').innerHTML = '';
-                alert('✅ Đã lưu API Key thành công!');
+                document.getElementById('apiError').style.display = 'none';
+                showNotification('✅ API Key saved successfully!', 'success');
             } else {
-                alert('⚠️ Vui lòng nhập API Key');
+                showNotification('⚠️ Please enter your API Key', 'error');
             }
         }
-
+        
         async function testAPIConnection() {
-            if (!GEMINI_API_KEY) {
-                alert('⚠️ Vui lòng nhập API Key trước!');
+            if (!DEEPSEEK_API_KEY) {
+                showNotification('⚠️ Please enter API Key first!', 'error');
                 return;
             }
-
-            const statusEl = document.getElementById('apiStatus');
-            const errorEl = document.getElementById('apiError');
             
-            statusEl.innerHTML = '🟡 Đang kiểm tra...';
-            errorEl.innerHTML = '';
-
+            const statusEl = document.getElementById('apiStatus');
+            statusEl.innerHTML = '🟡 Testing connection...';
+            
             try {
-                const testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`;
-                
-                const response = await fetch(testUrl);
+                const response = await fetch(DEEPSEEK_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: currentModel,
+                        messages: [{ role: 'user', content: 'Hello' }],
+                        max_tokens: 5
+                    })
+                });
                 
                 if (response.ok) {
-                    const data = await response.json();
-                    statusEl.innerHTML = '🟢 API hoạt động tốt';
-                    errorEl.innerHTML = '✅ Kết nối thành công!';
+                    statusEl.innerHTML = '🟢 API connected successfully!';
+                    showNotification('✅ Connection successful!', 'success');
                 } else {
-                    const error = await response.text();
-                    statusEl.innerHTML = '🔴 Lỗi kết nối';
-                    errorEl.innerHTML = `❌ Lỗi ${response.status}: Vui lòng kiểm tra lại API Key`;
+                    const error = await response.json();
+                    statusEl.innerHTML = '🔴 Connection failed';
+                    showNotification(`❌ Error: ${error.error?.message || 'Invalid API Key'}`, 'error');
                 }
             } catch (error) {
-                statusEl.innerHTML = '🔴 Không thể kết nối';
-                errorEl.innerHTML = `❌ Lỗi: ${error.message}`;
+                statusEl.innerHTML = '🔴 Cannot connect to API';
+                showNotification(`❌ Connection error: ${error.message}`, 'error');
             }
         }
-
+        
         function updateAPIStatus() {
             const statusEl = document.getElementById('apiStatus');
-            if (GEMINI_API_KEY) {
-                statusEl.innerHTML = '🟡 Đã lưu API Key - Hãy kiểm tra kết nối';
+            if (DEEPSEEK_API_KEY) {
+                statusEl.innerHTML = '🟡 API Key saved - Ready to chat';
             } else {
-                statusEl.innerHTML = '🔴 Chưa có API Key';
+                statusEl.innerHTML = '🔴 No API Key - Please configure';
             }
         }
-
-        // Theme functions
+        
+        function showNotification(message, type) {
+            const errorDiv = document.getElementById('apiError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            errorDiv.style.backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+            errorDiv.style.color = type === 'success' ? '#10b981' : '#ef4444';
+            
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Theme management
         function setTheme(theme) {
-            currentTheme = theme;
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
         }
-
+        
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'light';
+            setTheme(theme);
+        }
+        
         // Chat management
         function createNewChat() {
             const id = 'chat_' + Date.now();
             const now = new Date();
-            const name = 'Chat ' + now.toLocaleString('vi-VN', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                day: '2-digit',
-                month: '2-digit'
-            });
+            const name = `Chat ${now.toLocaleString('vi-VN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
             
             chats[id] = {
                 id: id,
                 name: name,
                 messages: [],
-                createdAt: now.toISOString()
+                createdAt: now.toISOString(),
+                updatedAt: now.toISOString()
             };
             
             saveChats();
             loadChat(id);
             renderHistory();
         }
-
+        
         function loadChat(chatId) {
             if (chats[chatId]) {
-                currentChat = JSON.parse(JSON.stringify(chats[chatId])); // Deep clone
+                currentChat = JSON.parse(JSON.stringify(chats[chatId]));
                 renderMessages();
                 updateActiveHistory(chatId);
             }
         }
-
-        function saveChats() {
-            localStorage.setItem('chats', JSON.stringify(chats));
+        
+        function saveCurrentChat() {
+            if (currentChat && currentChat.id) {
+                chats[currentChat.id] = JSON.parse(JSON.stringify(currentChat));
+                chats[currentChat.id].updatedAt = new Date().toISOString();
+                saveChats();
+            }
         }
-
+        
+        function saveChats() {
+            localStorage.setItem('deepseek_chats', JSON.stringify(chats));
+            renderHistory();
+        }
+        
         function loadChats() {
             try {
-                chats = JSON.parse(localStorage.getItem('chats')) || {};
+                const saved = localStorage.getItem('deepseek_chats');
+                chats = saved ? JSON.parse(saved) : {};
             } catch (e) {
                 chats = {};
             }
-            renderHistory();
         }
-
+        
         function renderHistory() {
             const historyList = document.getElementById('historyList');
             historyList.innerHTML = '';
             
-            if (Object.keys(chats).length === 0) return;
+            const sortedChats = Object.values(chats).sort((a, b) => 
+                new Date(b.updatedAt) - new Date(a.updatedAt)
+            );
             
-            Object.values(chats)
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .forEach(chat => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item' + (chat.id === currentChat.id ? ' active' : '');
-                    item.textContent = chat.name;
-                    item.onclick = () => loadChat(chat.id);
-                    historyList.appendChild(item);
-                });
+            sortedChats.forEach(chat => {
+                const item = document.createElement('div');
+                item.className = `history-item ${chat.id === currentChat?.id ? 'active' : ''}`;
+                item.textContent = chat.name;
+                item.onclick = () => loadChat(chat.id);
+                historyList.appendChild(item);
+            });
         }
-
+        
         function updateActiveHistory(chatId) {
-            document.querySelectorAll('.history-item').forEach(item => {
-                item.classList.remove('active');
+            document.querySelectorAll('.history-item').forEach((item, index) => {
                 if (item.textContent === chats[chatId]?.name) {
                     item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
                 }
             });
         }
-
+        
         // Message handling
         function renderMessages() {
             const wrapper = document.getElementById('messagesWrapper');
             wrapper.innerHTML = '';
             
             if (!currentChat.messages || currentChat.messages.length === 0) {
-                // Show welcome message
                 wrapper.innerHTML = `
                     <div class="message ai">
                         <div class="message-content">
-                            <div class="avatar ai">AI</div>
+                            <div class="avatar ai">DS</div>
                             <div class="text">
-                                <h3>🌟 Chào mừng bạn đến với Gemini AI Chat!</h3>
-                                <p>Đây là phiên bản <strong>hoàn toàn miễn phí</strong> sử dụng Google Gemini API.</p>
+                                <h3>👋 Welcome to DeepSeek AI!</h3>
+                                <p>I'm an AI assistant powered by DeepSeek, specialized in coding and problem-solving.</p>
                                 <br>
-                                <strong>📝 Hướng dẫn sử dụng:</strong><br>
-                                1️⃣ Truy cập <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
-                                2️⃣ Đăng nhập bằng Google Account<br>
-                                3️⃣ Click "Get API Key" → "Create API Key"<br>
-                                4️⃣ Copy API Key và dán vào ô bên trái<br>
-                                5️⃣ Nhấn "Lưu API Key" và "Kiểm tra kết nối"<br>
-                                6️⃣ Bắt đầu chat!<br>
+                                <strong>🚀 Quick Start:</strong><br>
+                                1. Get your API key from <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a><br>
+                                2. Enter your API key in the sidebar<br>
+                                3. Choose model (DeepSeek Chat or Coder)<br>
+                                4. Start chatting!<br>
                                 <br>
-                                <strong>✨ Lưu ý:</strong><br>
-                                - API Key của bạn bắt đầu bằng "AIza..."<br>
-                                - Nếu thấy lỗi, hãy kiểm tra lại API Key<br>
-                                - Gemini 1.5 là phiên bản mới nhất
+                                <strong>💡 Features:</strong><br>
+                                • Code generation and explanation<br>
+                                • Problem solving<br>
+                                • File analysis<br>
+                                • Conversation history<br>
+                                • Dark/Light theme
                             </div>
                         </div>
                     </div>
                 `;
             } else {
                 currentChat.messages.forEach(msg => {
-                    addMessageToUI(msg.role, msg.content, msg.files);
+                    addMessageToUI(msg.role, msg.content);
                 });
             }
             
             scrollToBottom();
         }
-
-        function addMessageToUI(role, content, files = null) {
+        
+        function addMessageToUI(role, content) {
             const wrapper = document.getElementById('messagesWrapper');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
             
-            let filesHtml = '';
-            if (files && files.length > 0) {
-                filesHtml = '<div style="margin-top: 8px;">';
-                files.forEach(file => {
-                    if (file.type && file.type.startsWith('image/')) {
-                        filesHtml += `<img src="${file.data}" class="image-preview" alt="Attached image">`;
-                    } else {
-                        filesHtml += `<div class="file-item">📎 ${file.name}</div>`;
-                    }
-                });
-                filesHtml += '</div>';
-            }
+            let formattedContent = formatContent(content);
             
             messageDiv.innerHTML = `
                 <div class="message-content">
-                    <div class="avatar ${role}">${role === 'user' ? 'U' : 'AI'}</div>
-                    <div class="text">${formatContent(content)}</div>
+                    <div class="avatar ${role}">${role === 'user' ? 'U' : 'DS'}</div>
+                    <div class="text">${formattedContent}</div>
                 </div>
-                ${filesHtml}
             `;
             
             wrapper.appendChild(messageDiv);
             scrollToBottom();
+            
+            // Add copy buttons to code blocks
+            document.querySelectorAll('pre').forEach(pre => {
+                if (!pre.querySelector('.copy-btn')) {
+                    const btn = document.createElement('button');
+                    btn.className = 'copy-btn';
+                    btn.textContent = 'Copy';
+                    btn.onclick = () => {
+                        const code = pre.querySelector('code')?.textContent || pre.textContent;
+                        navigator.clipboard.writeText(code);
+                        btn.textContent = 'Copied!';
+                        setTimeout(() => btn.textContent = 'Copy', 2000);
+                    };
+                    pre.style.position = 'relative';
+                    pre.appendChild(btn);
+                }
+            });
         }
-
+        
         function formatContent(content) {
             if (!content) return '';
             
-            // Escape HTML
-            const escaped = escapeHtml(content);
-            
-            // Format code blocks
-            let formatted = escaped.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+            // Format code blocks with language detection
+            let formatted = content.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
                 return `<pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>`;
             });
             
@@ -781,28 +893,33 @@
             // Format line breaks
             formatted = formatted.replace(/\n/g, '<br>');
             
+            // Format bold and italic
+            formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            
             return formatted;
         }
-
+        
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-
+        
         function scrollToBottom() {
             const container = document.getElementById('chatContainer');
-            container.scrollTop = container.scrollHeight;
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
         }
-
+        
         // File handling
         function handleFileSelect(event) {
             const files = Array.from(event.target.files);
             
             files.forEach(file => {
-                // Giới hạn kích thước file (5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert(`File ${file.name} quá lớn (tối đa 5MB)`);
+                if (file.size > 2 * 1024 * 1024) {
+                    showNotification(`File ${file.name} exceeds 2MB limit`, 'error');
                     return;
                 }
                 
@@ -811,60 +928,27 @@
                     attachedFiles.push({
                         name: file.name,
                         type: file.type,
-                        size: file.size,
-                        data: e.target.result
+                        content: e.target.result
                     });
-                    renderFilePreview();
+                    showNotification(`📎 ${file.name} attached`, 'success');
                 };
                 
-                if (file.type.startsWith('image/')) {
-                    reader.readAsDataURL(file);
-                } else {
-                    // Đọc text file với giới hạn
-                    reader.onload = (e) => {
-                        const content = e.target.result.substring(0, 5000); // Giới hạn 5000 ký tự
-                        attachedFiles.push({
-                            name: file.name,
-                            type: file.type,
-                            size: file.size,
-                            data: content
-                        });
-                        renderFilePreview();
-                    };
+                if (file.type === 'text/plain' || file.name.endsWith('.js') || file.name.endsWith('.py') || file.name.endsWith('.html')) {
                     reader.readAsText(file);
+                } else {
+                    reader.readAsDataURL(file);
                 }
             });
             
-            // Clear input
             event.target.value = '';
         }
-
-        function renderFilePreview() {
-            const preview = document.getElementById('filePreview');
-            preview.innerHTML = '';
-            
-            attachedFiles.forEach((file, index) => {
-                const item = document.createElement('div');
-                item.className = 'file-item';
-                item.innerHTML = `
-                    ${file.type && file.type.startsWith('image/') ? '🖼️' : '📄'} ${file.name}
-                    <span class="remove-file" onclick="removeFile(${index})">×</span>
-                `;
-                preview.appendChild(item);
-            });
-        }
-
-        function removeFile(index) {
-            attachedFiles.splice(index, 1);
-            renderFilePreview();
-        }
-
+        
         // AI Functions
         async function sendMessage() {
             if (isProcessing) return;
             
-            if (!GEMINI_API_KEY) {
-                alert('⚠️ Vui lòng nhập API Key trước khi chat!');
+            if (!DEEPSEEK_API_KEY) {
+                showNotification('⚠️ Please enter your DeepSeek API Key first!', 'error');
                 return;
             }
             
@@ -873,142 +957,112 @@
             
             if (!message && attachedFiles.length === 0) return;
             
-            // Disable send button
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
             
-            // Add user message
-            const userMessage = {
-                role: 'user',
-                content: message,
-                files: attachedFiles.length > 0 ? [...attachedFiles] : null
-            };
-            
-            if (!currentChat.messages) {
-                currentChat.messages = [];
+            // Prepare user message
+            let userContent = message;
+            if (attachedFiles.length > 0) {
+                userContent += '\n\n[Attached Files:]\n';
+                attachedFiles.forEach(file => {
+                    userContent += `\n--- ${file.name} ---\n`;
+                    if (file.type === 'text/plain' || file.name.match(/\.(js|py|html|css|json)$/)) {
+                        userContent += file.content.substring(0, 3000);
+                    } else {
+                        userContent += '[Binary file attached]';
+                    }
+                });
             }
             
+            const userMessage = {
+                role: 'user',
+                content: userContent
+            };
+            
+            if (!currentChat.messages) currentChat.messages = [];
             currentChat.messages.push(userMessage);
-            addMessageToUI('user', message, attachedFiles);
+            addMessageToUI('user', message);
             
-            // Clear input
             input.value = '';
-            
-            // Process with AI
+            attachedFiles = [];
             isProcessing = true;
+            
             showTypingIndicator();
             
             try {
-                const aiResponse = await callGeminiAPI(message, attachedFiles);
+                const aiResponse = await callDeepSeekAPI(currentChat.messages);
                 hideTypingIndicator();
                 
                 const aiMessage = {
-                    role: 'ai',
+                    role: 'assistant',
                     content: aiResponse
                 };
                 
                 currentChat.messages.push(aiMessage);
                 addMessageToUI('ai', aiResponse);
                 
-                // Save to localStorage
-                chats[currentChat.id] = currentChat;
-                saveChats();
+                saveCurrentChat();
                 
             } catch (error) {
                 hideTypingIndicator();
-                addMessageToUI('ai', '❌ Lỗi: ' + error.message);
-                console.error('API Error:', error);
+                addMessageToUI('ai', `❌ Error: ${error.message}`);
+                showNotification(`Error: ${error.message}`, 'error');
             } finally {
                 isProcessing = false;
-                attachedFiles = [];
-                renderFilePreview();
                 sendBtn.disabled = false;
             }
         }
-
-        async function callGeminiAPI(message, files) {
+        
+        async function callDeepSeekAPI(messages) {
             try {
                 const model = document.getElementById('modelSelect').value;
                 
-                // URL đúng cho Gemini API
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-                
-                // Chuẩn bị content parts
-                const parts = [];
-                
-                // Thêm text message
-                if (message) {
-                    parts.push({ text: message });
-                }
-                
-                // Thêm files
-                if (files && files.length > 0) {
-                    for (const file of files) {
-                        if (file.type && file.type.startsWith('image/')) {
-                            // Xử lý image
-                            const base64Data = file.data.split(',')[1];
-                            parts.push({
-                                inlineData: {
-                                    mimeType: file.type,
-                                    data: base64Data
-                                }
-                            });
-                        } else {
-                            // Xử lý text file
-                            parts.push({ 
-                                text: `\n\n[File: ${file.name}]\nContent: ${file.data}` 
-                            });
-                        }
-                    }
-                }
-                
                 const requestBody = {
-                    contents: [{
-                        parts: parts
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 2048,
-                    }
+                    model: model,
+                    messages: messages.map(msg => ({
+                        role: msg.role,
+                        content: msg.content
+                    })),
+                    temperature: 0.7,
+                    max_tokens: 4096,
+                    top_p: 0.95,
+                    frequency_penalty: 0,
+                    presence_penalty: 0
                 };
                 
-                const response = await fetch(apiUrl, {
+                const response = await fetch(DEEPSEEK_API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
                     },
                     body: JSON.stringify(requestBody)
                 });
                 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `HTTP Error ${response.status}`);
+                    const error = await response.json();
+                    throw new Error(error.error?.message || `HTTP ${response.status}`);
                 }
                 
                 const data = await response.json();
-                
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    return data.candidates[0].content.parts[0].text;
-                } else {
-                    throw new Error('Invalid response format from Gemini API');
-                }
+                return data.choices[0].message.content;
                 
             } catch (error) {
-                console.error('Gemini API call failed:', error);
+                console.error('DeepSeek API error:', error);
                 throw error;
             }
         }
-
-        function analyzeImage() {
-            document.getElementById('messageInput').value = 'Hãy phân tích hình ảnh này cho tôi:';
-            document.getElementById('fileInput').click();
-        }
-
+        
         function writeCode() {
-            document.getElementById('messageInput').value = 'Viết code cho tôi: ';
+            document.getElementById('messageInput').value = 'Write code for: ';
+            document.getElementById('messageInput').focus();
         }
-
-        // UI Helpers
+        
+        function explainCode() {
+            document.getElementById('messageInput').value = 'Please explain this code:\n\n```\n\n```';
+            document.getElementById('messageInput').focus();
+        }
+        
         function showTypingIndicator() {
             const wrapper = document.getElementById('messagesWrapper');
             const indicator = document.createElement('div');
@@ -1016,65 +1070,26 @@
             indicator.id = 'typingIndicator';
             indicator.innerHTML = `
                 <div class="message-content">
-                    <div class="avatar ai">AI</div>
+                    <div class="avatar ai">DS</div>
                     <div class="text">
-                        <div class="loading"></div> Đang suy nghĩ...
+                        <div class="loading"></div> Thinking...
                     </div>
                 </div>
             `;
             wrapper.appendChild(indicator);
             scrollToBottom();
         }
-
+        
         function hideTypingIndicator() {
             const indicator = document.getElementById('typingIndicator');
             if (indicator) indicator.remove();
         }
-
+        
         function handleKeyDown(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
                 sendMessage();
             }
-        }
-
-        // Export/Load functions
-        function exportChat() {
-            const data = JSON.stringify(currentChat, null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `chat_${Date.now()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function importChat() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const chat = JSON.parse(e.target.result);
-                        const id = 'chat_' + Date.now();
-                        chat.id = id;
-                        chat.name = 'Imported ' + new Date().toLocaleString();
-                        chat.createdAt = new Date().toISOString();
-                        chats[id] = chat;
-                        saveChats();
-                        loadChat(id);
-                        renderHistory();
-                    } catch (error) {
-                        alert('File không hợp lệ');
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
         }
     </script>
 </body>
