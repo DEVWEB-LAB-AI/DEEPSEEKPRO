@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qwen AI Chat - Trợ lý Lập trình Miễn phí</title>
+    <title>OpenAI AI Chat - Trợ lý Lập trình</title>
     <style>
         * {
             margin: 0;
@@ -17,8 +17,8 @@
             --text-primary: #1e293b;
             --text-secondary: #5b6e8c;
             --border-color: #e9eef3;
-            --accent-color: #2b4f6e;
-            --accent-hover: #1f3f58;
+            --accent-color: #10a37f;
+            --accent-hover: #0e8a6b;
             --code-bg: #0f172a;
             --message-ai-bg: #f8fafc;
             --message-user-bg: #eef2ff;
@@ -30,8 +30,8 @@
             --text-primary: #e2e8f0;
             --text-secondary: #94a3b8;
             --border-color: #334155;
-            --accent-color: #38bdf8;
-            --accent-hover: #7dd3fc;
+            --accent-color: #10a37f;
+            --accent-hover: #0e8a6b;
             --code-bg: #020617;
             --message-ai-bg: #1e293b;
             --message-user-bg: #2d3a4e;
@@ -71,7 +71,7 @@
         .logo-icon {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, #2b4f6e, #1f3f58);
+            background: linear-gradient(135deg, #10a37f, #0e8a6b);
             border-radius: 14px;
             display: flex;
             align-items: center;
@@ -84,7 +84,7 @@
         .logo-text {
             font-size: 1.25rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-color), #6c9ebf);
+            background: linear-gradient(135deg, var(--accent-color), #10a37f);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -236,7 +236,7 @@
         }
 
         .avatar.ai {
-            background: linear-gradient(135deg, #2b4f6e, #0f3b4f);
+            background: linear-gradient(135deg, #10a37f, #0e8a6b);
             color: white;
         }
 
@@ -365,14 +365,27 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .model-selector {
+            margin-top: 12px;
+        }
+
+        .model-selector select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
 <div class="app">
     <div class="sidebar">
         <div class="logo">
-            <div class="logo-icon">⚡</div>
-            <div class="logo-text">Qwen Dev AI</div>
+            <div class="logo-icon">🤖</div>
+            <div class="logo-text">OpenAI Dev AI</div>
         </div>
 
         <button class="new-chat-btn" onclick="createNewChat()">
@@ -383,19 +396,27 @@
             <div class="api-selector">
                 <strong>🤖 Model AI:</strong>
                 <select id="apiType" onchange="switchAPI()">
-                    <option value="qwen-free">🚀 Qwen (Free) - Không cần key</option>
-                    <option value="qwen-max">💎 Qwen-Max (Cần API Key)</option>
+                    <option value="openai">🚀 OpenAI (Cần API Key)</option>
                 </select>
             </div>
 
-            <div id="apiKeySection" style="display: none;">
+            <div id="apiKeySection">
                 <input type="password" id="apiKeyInput" class="api-key-input"
-                       placeholder="Nhập API Key từ Alibaba Cloud DashScope">
+                       placeholder="Nhập OpenAI API Key (sk-...)">
                 <button class="save-btn" onclick="saveAPIKey()">Lưu API Key</button>
             </div>
 
-            <div id="apiStatus" class="api-status" style="background: rgba(56,189,248,0.12); color: #38bdf8;">
-                ✅ Đang dùng Qwen Free - Hoạt động ngay!
+            <div class="model-selector">
+                <strong>🎯 Chọn Model:</strong>
+                <select id="modelSelect">
+                    <option value="gpt-4">GPT-4 (Mạnh nhất)</option>
+                    <option value="gpt-4-turbo-preview">GPT-4 Turbo (Nhanh)</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Tiết kiệm)</option>
+                </select>
+            </div>
+
+            <div id="apiStatus" class="api-status" style="background: rgba(16, 163, 127, 0.12); color: #10a37f;">
+                ⚙️ Vui lòng nhập OpenAI API Key để bắt đầu
             </div>
         </div>
 
@@ -410,24 +431,24 @@
 
     <div class="main-content">
         <div class="chat-header">
-            <h2>💬 Qwen AI - Trợ lý code thông minh</h2>
+            <h2>💬 OpenAI - Trợ lý code thông minh</h2>
         </div>
 
         <div class="chat-container" id="chatContainer">
             <div class="messages-wrapper" id="messagesWrapper">
                 <div class="message ai">
                     <div class="message-content">
-                        <div class="avatar ai">Q</div>
+                        <div class="avatar ai">O</div>
                         <div class="text">
-                            <h3>👋 Chào bạn, tôi là Qwen AI!</h3>
-                            <p>Tôi là trợ lý lập trình mạnh mẽ, <strong>hoàn toàn miễn phí</strong>. Bạn có thể:</p>
+                            <h3>👋 Chào bạn, tôi là OpenAI Assistant!</h3>
+                            <p>Tôi là trợ lý lập trình mạnh mẽ sử dụng <strong>OpenAI API</strong>. Bạn có thể:</p>
                             <ul style="margin: 8px 0 8px 20px;">
                                 <li>✍️ Viết code theo yêu cầu</li>
                                 <li>🐞 Debug và tối ưu code</li>
                                 <li>📁 Phân tích file code (JS, Python, HTML, CSS)</li>
                                 <li>📚 Giải thích thuật toán, cấu trúc dữ liệu</li>
                             </ul>
-                            <p><strong>⚡ Cách dùng:</strong> Chọn chế độ "Qwen (Free)" ở sidebar, không cần API key. Gõ câu hỏi hoặc đính kèm file code bên dưới!</p>
+                            <p><strong>⚡ Cách dùng:</strong> Nhập OpenAI API Key của bạn (lấy từ <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>), sau đó bắt đầu chat!</p>
                         </div>
                     </div>
                 </div>
@@ -441,8 +462,8 @@
                 <div class="input-tools">
                     <input type="file" id="fileInput" style="display: none" accept=".js,.py,.html,.css,.ts,.java,.cpp,.txt" onchange="handleFileSelect(event)">
                     <button class="tool-btn" onclick="document.getElementById('fileInput').click()">📎 Đính kèm code</button>
-                    <button class="tool-btn" onclick="quickPrompt('Viết một function JavaScript để ')">💻 Viết code</button>
-                    <button class="tool-btn" onclick="quickPrompt('Giải thích code sau:\n```\n\n```')">🔍 Giải thích</button>
+                    <button class="tool-btn" onclick="quickPrompt('Viết một function JavaScript để tính Fibonacci')">💻 Viết code</button>
+                    <button class="tool-btn" onclick="quickPrompt('Giải thích cách hoạt động của React hooks')">🔍 Giải thích</button>
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()">Gửi →</button>
                 </div>
             </div>
@@ -456,74 +477,79 @@
     let chats = {};
     let attachedFile = null;
     let isProcessing = false;
-    let currentAPI = 'qwen-free';
-    let QWEN_API_KEY = localStorage.getItem('qwen_api_key') || '';
+    let OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
+    let currentModel = 'gpt-3.5-turbo';
 
-    // Hàm AI phản hồi - Free mode (thông minh, hỗ trợ lập trình)
-    async function getAIResponse(message, codeFile) {
-        await new Promise(resolve => setTimeout(resolve, 600));
+    // Hàm gọi OpenAI API
+    async function getOpenAIResponse(messages, systemPrompt = null) {
+        if (!OPENAI_API_KEY) {
+            throw new Error('Vui lòng nhập OpenAI API Key trước khi sử dụng!');
+        }
+
+        const apiMessages = [];
         
-        const lowerMsg = message.toLowerCase();
-        
-        // Xử lý file đính kèm
-        if (codeFile) {
-            const ext = codeFile.name.split('.').pop();
-            return `📂 **Phân tích file:** \`${codeFile.name}\`\n\n` +
-                   `\`\`\`${ext}\n${codeFile.content.slice(0, 800)}${codeFile.content.length > 800 ? '\n... (còn tiếp)' : ''}\n\`\`\`\n\n` +
-                   `**Bạn muốn tôi:**\n` +
-                   `• 🔍 Giải thích logic code này?\n` +
-                   `• 🐛 Tìm lỗi và đề xuất sửa?\n` +
-                   `• ⚡ Tối ưu hiệu suất?\n` +
-                   `• 🔧 Thêm tính năng mới?\n\n` +
-                   `Hãy cho tôi biết yêu cầu cụ thể nhé!`;
+        // Thêm system prompt
+        if (systemPrompt) {
+            apiMessages.push({
+                role: 'system',
+                content: systemPrompt
+            });
+        } else {
+            apiMessages.push({
+                role: 'system',
+                content: 'Bạn là một trợ lý lập trình chuyên nghiệp, thông minh và thân thiện. Hãy trả lời bằng tiếng Việt, code bằng tiếng Anh. Giải thích chi tiết và cung cấp code mẫu khi cần.'
+            });
         }
         
-        // Viết code
-        if (lowerMsg.includes('viết') && (lowerMsg.includes('function') || lowerMsg.includes('hàm') || lowerMsg.includes('code'))) {
-            return `✍️ **Code mẫu theo yêu cầu của bạn:**\n\n` +
-                   `\`\`\`javascript\n// Function xử lý dữ liệu thông minh\nfunction processData(data, options = {}) {\n    const { sortBy = 'id', ascending = true } = options;\n    \n    if (!Array.isArray(data)) {\n        throw new Error('Dữ liệu đầu vào phải là mảng');\n    }\n    \n    return data\n        .filter(item => item != null)\n        .sort((a, b) => {\n            let valA = a[sortBy];\n            let valB = b[sortBy];\n            if (ascending) return valA > valB ? 1 : -1;\n            return valA < valB ? 1 : -1;\n        });\n}\n\n// Ví dụ sử dụng\nconst users = [\n    { id: 3, name: 'Alice' },\n    { id: 1, name: 'Bob' },\n    { id: 2, name: 'Charlie' }\n];\n\nconsole.log(processData(users, { sortBy: 'name', ascending: true }));\n\`\`\`\n\nBạn muốn code bằng ngôn ngữ nào khác? (Python, Java, C++...)`;
+        // Thêm lịch sử chat (chỉ lấy 10 tin nhắn gần nhất để tiết kiệm token)
+        const recentMessages = messages.slice(-10);
+        for (const msg of recentMessages) {
+            apiMessages.push({
+                role: msg.role === 'user' ? 'user' : 'assistant',
+                content: msg.content
+            });
+        }
+
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: currentModel,
+                    messages: apiMessages,
+                    temperature: 0.7,
+                    max_tokens: 2000,
+                    top_p: 1,
+                    frequency_penalty: 0,
+                    presence_penalty: 0
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Lỗi khi gọi OpenAI API');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error('OpenAI API Error:', error);
+            throw error;
+        }
+    }
+
+    // Xử lý tin nhắn với file đính kèm
+    async function processWithAttachment(message, file) {
+        let fullMessage = message;
+        
+        if (file) {
+            fullMessage = `[File đính kèm: ${file.name}]\n\nNội dung file:\n\`\`\`\n${file.content}\n\`\`\`\n\nYêu cầu: ${message || 'Phân tích và giải thích code này'}`;
         }
         
-        // Debug
-        if (lowerMsg.includes('debug') || lowerMsg.includes('lỗi') || lowerMsg.includes('bug')) {
-            return `🐞 **Hướng dẫn debug hiệu quả:**\n\n` +
-                   `**1. Sử dụng console.log chi tiết:**\n` +
-                   `\`\`\`js\nconsole.log('🚀 Variable:', variable, 'Type:', typeof variable);\nconsole.trace('Stack trace');\n\`\`\`\n\n` +
-                   `**2. Try-catch bắt lỗi:**\n` +
-                   `\`\`\`js\ntry {\n    riskyFunction();\n} catch (error) {\n    console.error('❌ Lỗi:', error.message);\n    console.error('Stack:', error.stack);\n}\n\`\`\`\n\n` +
-                   `**3. Debugger trong DevTools:**\n` +
-                   `Thêm từ khóa \`debugger;\` vào code, mở DevTools (F12) → Sources → Step qua từng bước.\n\n` +
-                   `**4. Kiểm tra lỗi thường gặp:**\n` +
-                   `• undefined/null: kiểm tra \`if (variable)\` trước khi dùng\n` +
-                   `• Lỗi async: dùng try-catch với async/await\n` +
-                   `• Lỗi scope: kiểm tra biến có được khai báo đúng không\n\n` +
-                   `Bạn đang gặp lỗi cụ thể nào? Gửi code để tôi debug giúp!`;
-        }
-        
-        // Giải thích
-        if (lowerMsg.includes('giải thích') || lowerMsg.includes('explain')) {
-            return `📖 **Cách giải thích code chuyên nghiệp:**\n\n` +
-                   `Tôi sẽ phân tích code theo cấu trúc:\n\n` +
-                   `**1. Mục đích:** Code này giải quyết vấn đề gì?\n` +
-                   `**2. Luồng xử lý:** Các bước thực hiện chính\n` +
-                   `**3. Độ phức tạp:** Big O notation (thời gian, bộ nhớ)\n` +
-                   `**4. Điểm mạnh/yếu:** Ưu điểm và hạn chế\n` +
-                   `**5. Cải tiến:** Đề xuất tối ưu hóa\n\n` +
-                   `✨ **Ví dụ với code sort:**\n` +
-                   `\`\`\`js\nconst sorted = arr.sort((a,b) => a - b);\n\`\`\`\n` +
-                   `→ Sắp xếp mảng số tăng dần, độ phức tạp O(n log n), sửa đổi trực tiếp mảng gốc.\n\n` +
-                   `Hãy gửi code bạn muốn tôi giải thích!`;
-        }
-        
-        // Phản hồi mặc định
-        return `✨ **Qwen AI - Trợ lý lập trình sẵn sàng!**\n\n` +
-               `Tôi có thể giúp bạn:\n` +
-               `• 💻 **Viết code**: "Viết function tính Fibonacci"\n` +
-               `• 🐞 **Debug**: "Debug code này: [dán code vào]"\n` +
-               `• 📖 **Giải thích**: "Giải thích thuật toán binary search"\n` +
-               `• 🚀 **Tối ưu**: "Tối ưu code này"\n` +
-               `• 📚 **Học tập**: "Học React trong 5 phút"\n\n` +
-               `**Hãy thử hỏi tôi bất kỳ vấn đề lập trình nào!** 😊`;
+        return fullMessage;
     }
 
     // Gửi tin nhắn
@@ -535,11 +561,21 @@
         
         if (!message && !attachedFile) return;
         
+        // Kiểm tra API key
+        if (!OPENAI_API_KEY) {
+            alert('⚠️ Vui lòng nhập OpenAI API Key trước khi sử dụng!\n\nLấy key tại: https://platform.openai.com/api-keys');
+            return;
+        }
+        
         const sendBtn = document.getElementById('sendBtn');
         sendBtn.disabled = true;
         isProcessing = true;
         
-        const userMsg = message || (attachedFile ? `📎 File: ${attachedFile.name}` : '');
+        // Xử lý tin nhắn với file
+        const finalMessage = await processWithAttachment(message, attachedFile);
+        
+        // Thêm tin nhắn user
+        const userMsg = message || (attachedFile ? `📎 Phân tích file: ${attachedFile.name}` : '');
         currentChat.messages.push({ role: 'user', content: userMsg });
         addMessageToUI('user', userMsg);
         input.value = '';
@@ -550,14 +586,36 @@
         showTypingIndicator();
         
         try {
-            const response = await getAIResponse(message, fileToSend);
+            // Gọi OpenAI API
+            const response = await getOpenAIResponse(currentChat.messages);
             hideTypingIndicator();
             addMessageToUI('ai', response);
-            currentChat.messages.push({ role: 'ai', content: response });
+            currentChat.messages.push({ role: 'assistant', content: response });
             saveCurrentChat();
+            
+            // Cập nhật status
+            const statusDiv = document.getElementById('apiStatus');
+            statusDiv.innerHTML = '✅ Đã nhận phản hồi từ OpenAI!';
+            statusDiv.style.background = 'rgba(16, 185, 129, 0.12)';
+            statusDiv.style.color = '#10b981';
+            setTimeout(() => {
+                if (OPENAI_API_KEY) {
+                    statusDiv.innerHTML = `✅ Đang dùng OpenAI ${currentModel.toUpperCase()}`;
+                }
+            }, 2000);
+            
         } catch (error) {
             hideTypingIndicator();
-            addMessageToUI('ai', `❌ Lỗi: ${error.message}\n\n💡 Hãy thử chọn chế độ "Qwen (Free)" ở sidebar để dùng miễn phí!`);
+            let errorMsg = `❌ Lỗi: ${error.message}\n\n`;
+            if (error.message.includes('API key')) {
+                errorMsg += '💡 Vui lòng kiểm tra lại OpenAI API Key của bạn.\n';
+                errorMsg += '🔑 Lấy key tại: https://platform.openai.com/api-keys';
+            } else if (error.message.includes('insufficient_quota')) {
+                errorMsg += '💡 Tài khoản của bạn đã hết quota. Vui lòng nạp thêm credit hoặc đổi key khác.';
+            } else {
+                errorMsg += '💡 Kiểm tra kết nối internet và API Key của bạn.';
+            }
+            addMessageToUI('ai', errorMsg);
         } finally {
             isProcessing = false;
             sendBtn.disabled = false;
@@ -571,22 +629,23 @@
         
         let formatted = content
             .replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-                return `<pre><code>${escapeHtml(code)}</code></pre>`;
+                return `<pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>`;
             })
             .replace(/`([^`]+)`/g, '<code>$1</code>')
             .replace(/\n/g, '<br>')
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-            .replace(/•/g, '•');
+            .replace(/###\s(.+?)(?=<br|$)/g, '<h3>$1</h3>');
         
         messageDiv.innerHTML = `
             <div class="message-content">
-                <div class="avatar ${role}">${role === 'user' ? 'U' : 'Q'}</div>
+                <div class="avatar ${role}">${role === 'user' ? 'U' : 'O'}</div>
                 <div class="text">${formatted}</div>
             </div>
         `;
         wrapper.appendChild(messageDiv);
         scrollToBottom();
         
+        // Thêm nút copy cho code blocks
         setTimeout(() => {
             document.querySelectorAll('pre').forEach(pre => {
                 if (!pre.querySelector('.copy-btn')) {
@@ -606,12 +665,12 @@
     }
     
     function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
     
     function scrollToBottom() {
@@ -627,8 +686,8 @@
         indicator.id = 'typingIndicator';
         indicator.innerHTML = `
             <div class="message-content">
-                <div class="avatar ai">Q</div>
-                <div class="text"><div class="loading"></div> Qwen AI đang suy nghĩ...</div>
+                <div class="avatar ai">O</div>
+                <div class="text"><div class="loading"></div> OpenAI đang suy nghĩ...</div>
             </div>
         `;
         wrapper.appendChild(indicator);
@@ -642,7 +701,7 @@
     
     function handleFileSelect(event) {
         const file = event.target.files[0];
-        if (file && file.name.match(/\.(js|py|html|css|ts|java|cpp|txt)$/i)) {
+        if (file && file.name.match(/\.(js|py|html|css|ts|java|cpp|txt|md|json)$/i)) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 attachedFile = {
@@ -650,12 +709,21 @@
                     content: e.target.result
                 };
                 const statusDiv = document.getElementById('apiStatus');
-                statusDiv.textContent = `📎 Đã đính kèm: ${file.name}`;
+                const originalText = statusDiv.innerHTML;
+                statusDiv.innerHTML = `📎 Đã đính kèm: ${file.name} - Nhấn gửi để phân tích`;
                 statusDiv.style.color = '#10b981';
+                setTimeout(() => {
+                    if (OPENAI_API_KEY) {
+                        statusDiv.innerHTML = `✅ Đang dùng OpenAI ${currentModel.toUpperCase()}`;
+                    } else {
+                        statusDiv.innerHTML = originalText;
+                    }
+                }, 3000);
             };
-            reader.readAsText(file);
+            reader.readAsText(file, 'UTF-8');
         } else {
-            alert('Chỉ hỗ trợ file code (.js, .py, .html, .css, .java, .cpp)');
+            alert('Chỉ hỗ trợ file code (.js, .py, .html, .css, .java, .cpp, .txt, .json, .md)');
+            event.target.value = '';
         }
     }
     
@@ -666,19 +734,20 @@
     }
     
     function switchAPI() {
-        const select = document.getElementById('apiType');
-        currentAPI = select.value;
-        const apiKeyDiv = document.getElementById('apiKeySection');
+        // Giữ nguyên vì chỉ có OpenAI
+        const modelSelect = document.getElementById('modelSelect');
+        currentModel = modelSelect.value;
+        updateAPIStatus();
+    }
+    
+    function updateAPIStatus() {
         const statusDiv = document.getElementById('apiStatus');
-        
-        if (currentAPI === 'qwen-free') {
-            apiKeyDiv.style.display = 'none';
-            statusDiv.innerHTML = '✅ Đang dùng Qwen Free - Không cần API key, hoạt động ngay!';
+        if (OPENAI_API_KEY) {
+            statusDiv.innerHTML = `✅ Đang dùng OpenAI ${currentModel.toUpperCase()} - Sẵn sàng!`;
             statusDiv.style.background = 'rgba(16, 185, 129, 0.12)';
             statusDiv.style.color = '#10b981';
         } else {
-            apiKeyDiv.style.display = 'block';
-            statusDiv.innerHTML = '🔑 Chế độ Qwen-Max: Cần API Key từ Alibaba Cloud DashScope';
+            statusDiv.innerHTML = '⚠️ Vui lòng nhập OpenAI API Key để bắt đầu';
             statusDiv.style.background = 'rgba(245, 158, 11, 0.12)';
             statusDiv.style.color = '#f59e0b';
         }
@@ -686,12 +755,16 @@
     
     function saveAPIKey() {
         const key = document.getElementById('apiKeyInput').value.trim();
-        if (key) {
-            QWEN_API_KEY = key;
-            localStorage.setItem('qwen_api_key', key);
-            const statusDiv = document.getElementById('apiStatus');
-            statusDiv.innerHTML = '✅ Đã lưu API Key! (Chưa hỗ trợ gọi thực tế, vui lòng dùng Free mode)';
-            statusDiv.style.color = '#10b981';
+        if (key && key.startsWith('sk-')) {
+            OPENAI_API_KEY = key;
+            localStorage.setItem('openai_api_key', key);
+            updateAPIStatus();
+            alert('✅ Đã lưu API Key thành công! Bạn có thể bắt đầu chat ngay.');
+            document.getElementById('apiKeyInput').value = '';
+        } else if (key) {
+            alert('⚠️ API Key không hợp lệ. Key OpenAI thường bắt đầu bằng "sk-"');
+        } else {
+            alert('⚠️ Vui lòng nhập API Key');
         }
     }
     
@@ -709,22 +782,32 @@
     }
     
     function saveChats() {
-        localStorage.setItem('qwen_chats', JSON.stringify(chats));
+        localStorage.setItem('openai_chats', JSON.stringify(chats));
     }
     
     function loadChats() {
-        const saved = localStorage.getItem('qwen_chats');
+        const saved = localStorage.getItem('openai_chats');
         if (saved) chats = JSON.parse(saved);
-        if (Object.keys(chats).length === 0) createNewChat();
-        else currentChat = chats[Object.keys(chats)[0]];
+        if (Object.keys(chats).length === 0) {
+            createNewChat();
+        } else {
+            currentChat = chats[Object.keys(chats)[0]];
+        }
         renderMessages();
+        
+        // Load model từ localStorage
+        const savedModel = localStorage.getItem('openai_model');
+        if (savedModel) {
+            document.getElementById('modelSelect').value = savedModel;
+            currentModel = savedModel;
+        }
     }
     
     function renderMessages() {
         const wrapper = document.getElementById('messagesWrapper');
         wrapper.innerHTML = '';
         if (!currentChat.messages || currentChat.messages.length === 0) {
-            wrapper.innerHTML = `<div class="message ai"><div class="message-content"><div class="avatar ai">Q</div><div class="text"><h3>👋 Chào bạn!</h3><p>Hãy bắt đầu bằng cách nhập câu hỏi hoặc đính kèm file code.</p></div></div></div>`;
+            wrapper.innerHTML = `<div class="message ai"><div class="message-content"><div class="avatar ai">O</div><div class="text"><h3>👋 Chào bạn!</h3><p>Hãy nhập OpenAI API Key ở sidebar và bắt đầu đặt câu hỏi lập trình nhé!</p></div></div></div>`;
         } else {
             currentChat.messages.forEach(msg => addMessageToUI(msg.role, msg.content));
         }
@@ -740,16 +823,29 @@
         setTheme(theme);
     }
     
+    // Lắng nghe sự kiện thay đổi model
     document.addEventListener('DOMContentLoaded', () => {
         loadTheme();
         loadChats();
+        
+        const modelSelect = document.getElementById('modelSelect');
+        modelSelect.addEventListener('change', () => {
+            currentModel = modelSelect.value;
+            localStorage.setItem('openai_model', currentModel);
+            updateAPIStatus();
+        });
+        
         document.getElementById('messageInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
-        switchAPI();
+        
+        // Load API key đã lưu
+        if (OPENAI_API_KEY) {
+            updateAPIStatus();
+        }
     });
 </script>
 </body>
