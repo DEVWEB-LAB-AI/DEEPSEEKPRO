@@ -26,6 +26,9 @@
             --accent-hover: #0052a3;
             --shadow: 0 1px 3px rgba(0,0,0,0.05);
             --code-bg: #1e1e1e;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
         }
 
         [data-theme="dark"] {
@@ -58,13 +61,14 @@
 
         /* Sidebar */
         .sidebar {
-            width: 280px;
+            width: 300px;
             background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             padding: 20px;
             gap: 16px;
+            overflow-y: auto;
         }
 
         .logo {
@@ -76,10 +80,10 @@
         }
 
         .logo-icon {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, #0066cc, #00a3ff);
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -110,7 +114,7 @@
             align-items: center;
             gap: 10px;
             justify-content: center;
-            margin-bottom: 8px;
+            transition: all 0.2s;
         }
 
         .new-chat-btn:hover {
@@ -134,13 +138,14 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            max-height: 300px;
         }
 
         .history-item {
             padding: 10px 12px;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-secondary);
             transition: all 0.2s;
             white-space: nowrap;
@@ -182,6 +187,7 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             font-size: 13px;
+            font-family: monospace;
         }
 
         .api-key-input:focus {
@@ -232,6 +238,17 @@
             border-radius: 8px;
             background: var(--bg-secondary);
             text-align: center;
+            font-weight: 500;
+        }
+
+        .api-status.connected {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .api-status.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
         }
 
         .theme-toggle {
@@ -268,17 +285,29 @@
             display: flex;
             flex-direction: column;
             background-color: var(--bg-primary);
+            overflow: hidden;
         }
 
         .chat-header {
             padding: 16px 24px;
             border-bottom: 1px solid var(--border-color);
             background: var(--bg-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .chat-header h2 {
             font-size: 18px;
             font-weight: 600;
+        }
+
+        .model-badge {
+            font-size: 12px;
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            color: var(--text-secondary);
         }
 
         .chat-container {
@@ -449,7 +478,7 @@
             transition: all 0.2s;
         }
 
-        .send-btn:hover {
+        .send-btn:hover:not(:disabled) {
             background: var(--accent-hover);
             transform: translateY(-1px);
         }
@@ -457,7 +486,6 @@
         .send-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
         .loading {
@@ -475,12 +503,38 @@
         }
 
         .error-message {
-            color: #ef4444;
             font-size: 12px;
             margin-top: 8px;
-            padding: 8px;
-            background: rgba(239, 68, 68, 0.1);
+            padding: 10px;
             border-radius: 8px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border-left: 3px solid var(--error-color);
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border-left-color: var(--success-color);
+        }
+
+        .debug-panel {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-family: monospace;
+            max-width: 300px;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .debug-panel:hover {
+            background: var(--hover-color);
         }
 
         /* Scrollbar */
@@ -516,23 +570,20 @@
                 <span>+</span> New Chat
             </button>
             
-            <div class="history-header">Recent Chats</div>
+            <div class="history-header">📋 Recent Chats</div>
             <div class="history-list" id="historyList"></div>
             
             <div class="api-config">
                 <div class="config-title">⚙️ API Configuration</div>
                 <input type="password" id="apiKeyInput" class="api-key-input" 
-                       placeholder="DeepSeek API Key" value="">
+                       placeholder="sk-xxxxxxxxxxxxxxxx" value="">
                 <select id="modelSelect" class="model-select">
-                    <option value="deepseek-chat">DeepSeek Chat</option>
-                    <option value="deepseek-coder">DeepSeek Coder</option>
+                    <option value="deepseek-chat">DeepSeek Chat (General)</option>
+                    <option value="deepseek-coder">DeepSeek Coder (Programming)</option>
                 </select>
-                <button class="save-api-btn" onclick="saveAPIKey()">Save API Key</button>
-                <button class="test-api-btn" onclick="testAPIConnection()">Test Connection</button>
-                <div id="apiError" class="error-message" style="display: none;"></div>
-                <div class="api-status" id="apiStatus">
-                    🔴 No API Key
-                </div>
+                <button class="save-api-btn" onclick="saveAPIKey()">💾 Save API Key</button>
+                <button class="test-api-btn" onclick="testAPIConnection()">🔌 Test Connection</button>
+                <div id="apiStatus" class="api-status">🔴 No API Key</div>
             </div>
             
             <div class="theme-toggle">
@@ -547,7 +598,8 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="chat-header">
-                <h2>DeepSeek AI Assistant</h2>
+                <h2>💬 DeepSeek AI Assistant</h2>
+                <div class="model-badge" id="modelBadge">Model: deepseek-chat</div>
             </div>
             
             <div class="chat-container" id="chatContainer">
@@ -556,21 +608,22 @@
                         <div class="message-content">
                             <div class="avatar ai">DS</div>
                             <div class="text">
-                                <h3>👋 Welcome to DeepSeek AI!</h3>
-                                <p>I'm an AI assistant powered by DeepSeek, specialized in coding and problem-solving.</p>
+                                <h3>👋 Xin chào! Tôi là DeepSeek AI</h3>
+                                <p>Tôi là trợ lý AI được phát triển bởi DeepSeek, chuyên hỗ trợ lập trình và giải đáp các vấn đề kỹ thuật.</p>
                                 <br>
-                                <strong>🚀 Quick Start:</strong><br>
-                                1. Get your API key from <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a><br>
-                                2. Enter your API key in the sidebar<br>
-                                3. Choose model (DeepSeek Chat or Coder)<br>
-                                4. Start chatting!<br>
+                                <strong>🚀 Hướng dẫn nhanh:</strong><br>
+                                1️⃣ Lấy API Key tại <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a><br>
+                                2️⃣ Đăng ký tài khoản và tạo API Key (có gói miễn phí)<br>
+                                3️⃣ Dán API Key vào ô bên trái và nhấn "Save"<br>
+                                4️⃣ Nhấn "Test Connection" để kiểm tra kết nối<br>
+                                5️⃣ Bắt đầu chat ngay!<br>
                                 <br>
-                                <strong>💡 Features:</strong><br>
-                                • Code generation and explanation<br>
-                                • Problem solving<br>
-                                • File analysis<br>
-                                • Conversation history<br>
-                                • Dark/Light theme
+                                <strong>✨ Tính năng:</strong><br>
+                                • 💻 Hỗ trợ viết và giải thích code<br>
+                                • 📎 Đính kèm file code để phân tích<br>
+                                • 🌓 Giao diện sáng/tối<br>
+                                • 💾 Lưu trữ lịch sử chat<br>
+                                • 🚀 Phản hồi nhanh chóng
                             </div>
                         </div>
                     </div>
@@ -580,7 +633,7 @@
             <!-- Input Area -->
             <div class="input-area">
                 <div class="input-wrapper">
-                    <textarea id="messageInput" placeholder="Ask me anything... (Press Enter to send, Shift+Enter for new line)"></textarea>
+                    <textarea id="messageInput" placeholder="Nhập câu hỏi của bạn... (Enter để gửi, Shift+Enter xuống dòng)"></textarea>
                     
                     <div class="input-tools">
                         <input type="file" id="fileInput" style="display: none" multiple onchange="handleFileSelect(event)">
@@ -593,6 +646,9 @@
                         <button class="tool-btn" onclick="explainCode()">
                             🔍 Explain Code
                         </button>
+                        <button class="tool-btn" onclick="debugCode()">
+                            🐛 Debug Code
+                        </button>
                         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
                             Send →
                         </button>
@@ -602,12 +658,17 @@
         </div>
     </div>
 
+    <div class="debug-panel" id="debugPanel" onclick="toggleDebug()">
+        📡 Debug Info
+    </div>
+
     <script>
         // State management
         let currentChat = { id: 'default', messages: [], name: 'New Chat' };
         let chats = {};
         let attachedFiles = [];
         let isProcessing = false;
+        let debugMode = false;
         
         // API Configuration
         let DEEPSEEK_API_KEY = localStorage.getItem('deepseek_api_key') || '';
@@ -618,6 +679,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 App initialized');
             loadChats();
             loadTheme();
             loadAPIKey();
@@ -632,14 +694,52 @@
             }
             
             updateAPIStatus();
+            updateModelBadge();
             
             // Event listeners
             document.getElementById('messageInput').addEventListener('keydown', handleKeyDown);
+            
+            // Auto-save interval
+            setInterval(() => {
+                if (currentChat && currentChat.messages && currentChat.messages.length > 0) {
+                    saveCurrentChat();
+                }
+            }, 30000);
         });
+        
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const panel = document.getElementById('debugPanel');
+            if (debugMode) {
+                panel.style.background = 'var(--accent-color)';
+                panel.style.color = 'white';
+                showNotification('Debug mode enabled', 'info');
+            } else {
+                panel.style.background = 'var(--bg-secondary)';
+                panel.style.color = 'var(--text-primary)';
+            }
+        }
+        
+        function logDebug(message, data) {
+            if (debugMode) {
+                console.log(`[DEBUG] ${message}`, data || '');
+                const panel = document.getElementById('debugPanel');
+                panel.innerHTML = `📡 ${message.substring(0, 50)}`;
+                setTimeout(() => {
+                    panel.innerHTML = '📡 Debug Info';
+                }, 2000);
+            }
+        }
         
         function loadAPIKey() {
             document.getElementById('apiKeyInput').value = DEEPSEEK_API_KEY;
             document.getElementById('modelSelect').value = currentModel;
+        }
+        
+        function updateModelBadge() {
+            const badge = document.getElementById('modelBadge');
+            const model = document.getElementById('modelSelect').value;
+            badge.textContent = `Model: ${model === 'deepseek-chat' ? 'DeepSeek Chat' : 'DeepSeek Coder'}`;
         }
         
         // API Key management
@@ -653,8 +753,9 @@
                 localStorage.setItem('deepseek_api_key', apiKey);
                 localStorage.setItem('deepseek_model', model);
                 updateAPIStatus();
-                document.getElementById('apiError').style.display = 'none';
+                updateModelBadge();
                 showNotification('✅ API Key saved successfully!', 'success');
+                logDebug('API Key saved', { keyLength: apiKey.length });
             } else {
                 showNotification('⚠️ Please enter your API Key', 'error');
             }
@@ -668,6 +769,9 @@
             
             const statusEl = document.getElementById('apiStatus');
             statusEl.innerHTML = '🟡 Testing connection...';
+            statusEl.className = 'api-status';
+            
+            logDebug('Testing API connection...');
             
             try {
                 const response = await fetch(DEEPSEEK_API_URL, {
@@ -678,21 +782,30 @@
                     },
                     body: JSON.stringify({
                         model: currentModel,
-                        messages: [{ role: 'user', content: 'Hello' }],
-                        max_tokens: 5
+                        messages: [{ role: 'user', content: 'Say "OK" if you can hear me' }],
+                        max_tokens: 10
                     })
                 });
                 
+                logDebug('API Response status', response.status);
+                
                 if (response.ok) {
+                    const data = await response.json();
+                    logDebug('API Response data', data);
                     statusEl.innerHTML = '🟢 API connected successfully!';
-                    showNotification('✅ Connection successful!', 'success');
+                    statusEl.className = 'api-status connected';
+                    showNotification('✅ Connection successful! API is working', 'success');
                 } else {
                     const error = await response.json();
+                    logDebug('API Error', error);
                     statusEl.innerHTML = '🔴 Connection failed';
+                    statusEl.className = 'api-status error';
                     showNotification(`❌ Error: ${error.error?.message || 'Invalid API Key'}`, 'error');
                 }
             } catch (error) {
+                logDebug('Connection error', error);
                 statusEl.innerHTML = '🔴 Cannot connect to API';
+                statusEl.className = 'api-status error';
                 showNotification(`❌ Connection error: ${error.message}`, 'error');
             }
         }
@@ -701,20 +814,29 @@
             const statusEl = document.getElementById('apiStatus');
             if (DEEPSEEK_API_KEY) {
                 statusEl.innerHTML = '🟡 API Key saved - Ready to chat';
+                statusEl.className = 'api-status';
             } else {
                 statusEl.innerHTML = '🔴 No API Key - Please configure';
+                statusEl.className = 'api-status error';
             }
         }
         
         function showNotification(message, type) {
-            const errorDiv = document.getElementById('apiError');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = `error-message ${type === 'success' ? 'success-message' : ''}`;
             errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            errorDiv.style.backgroundColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
-            errorDiv.style.color = type === 'success' ? '#10b981' : '#ef4444';
+            errorDiv.style.position = 'fixed';
+            errorDiv.style.bottom = '20px';
+            errorDiv.style.right = '20px';
+            errorDiv.style.zIndex = '10000';
+            errorDiv.style.maxWidth = '300px';
+            errorDiv.style.animation = 'fadeIn 0.3s ease';
+            
+            document.body.appendChild(errorDiv);
             
             setTimeout(() => {
-                errorDiv.style.display = 'none';
+                errorDiv.style.opacity = '0';
+                setTimeout(() => errorDiv.remove(), 300);
             }, 3000);
         }
         
@@ -746,6 +868,7 @@
             saveChats();
             loadChat(id);
             renderHistory();
+            showNotification('✨ New chat created', 'success');
         }
         
         function loadChat(chatId) {
@@ -753,6 +876,7 @@
                 currentChat = JSON.parse(JSON.stringify(chats[chatId]));
                 renderMessages();
                 updateActiveHistory(chatId);
+                logDebug('Loaded chat', { chatId, messageCount: currentChat.messages?.length });
             }
         }
         
@@ -773,7 +897,9 @@
             try {
                 const saved = localStorage.getItem('deepseek_chats');
                 chats = saved ? JSON.parse(saved) : {};
+                logDebug('Loaded chats', { count: Object.keys(chats).length });
             } catch (e) {
+                console.error('Error loading chats:', e);
                 chats = {};
             }
         }
@@ -797,7 +923,8 @@
         
         function updateActiveHistory(chatId) {
             document.querySelectorAll('.history-item').forEach((item, index) => {
-                if (item.textContent === chats[chatId]?.name) {
+                const chat = Object.values(chats).find(c => c.name === item.textContent);
+                if (chat && chat.id === chatId) {
                     item.classList.add('active');
                 } else {
                     item.classList.remove('active');
@@ -816,21 +943,22 @@
                         <div class="message-content">
                             <div class="avatar ai">DS</div>
                             <div class="text">
-                                <h3>👋 Welcome to DeepSeek AI!</h3>
-                                <p>I'm an AI assistant powered by DeepSeek, specialized in coding and problem-solving.</p>
+                                <h3>👋 Xin chào! Tôi là DeepSeek AI</h3>
+                                <p>Tôi là trợ lý AI được phát triển bởi DeepSeek, chuyên hỗ trợ lập trình và giải đáp các vấn đề kỹ thuật.</p>
                                 <br>
-                                <strong>🚀 Quick Start:</strong><br>
-                                1. Get your API key from <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a><br>
-                                2. Enter your API key in the sidebar<br>
-                                3. Choose model (DeepSeek Chat or Coder)<br>
-                                4. Start chatting!<br>
+                                <strong>🚀 Hướng dẫn nhanh:</strong><br>
+                                1️⃣ Lấy API Key tại <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a><br>
+                                2️⃣ Đăng ký tài khoản và tạo API Key (có gói miễn phí)<br>
+                                3️⃣ Dán API Key vào ô bên trái và nhấn "Save"<br>
+                                4️⃣ Nhấn "Test Connection" để kiểm tra kết nối<br>
+                                5️⃣ Bắt đầu chat ngay!<br>
                                 <br>
-                                <strong>💡 Features:</strong><br>
-                                • Code generation and explanation<br>
-                                • Problem solving<br>
-                                • File analysis<br>
-                                • Conversation history<br>
-                                • Dark/Light theme
+                                <strong>✨ Tính năng:</strong><br>
+                                • 💻 Hỗ trợ viết và giải thích code<br>
+                                • 📎 Đính kèm file code để phân tích<br>
+                                • 🌓 Giao diện sáng/tối<br>
+                                • 💾 Lưu trữ lịch sử chat<br>
+                                • 🚀 Phản hồi nhanh chóng
                             </div>
                         </div>
                     </div>
@@ -862,27 +990,29 @@
             scrollToBottom();
             
             // Add copy buttons to code blocks
-            document.querySelectorAll('pre').forEach(pre => {
-                if (!pre.querySelector('.copy-btn')) {
-                    const btn = document.createElement('button');
-                    btn.className = 'copy-btn';
-                    btn.textContent = 'Copy';
-                    btn.onclick = () => {
-                        const code = pre.querySelector('code')?.textContent || pre.textContent;
-                        navigator.clipboard.writeText(code);
-                        btn.textContent = 'Copied!';
-                        setTimeout(() => btn.textContent = 'Copy', 2000);
-                    };
-                    pre.style.position = 'relative';
-                    pre.appendChild(btn);
-                }
-            });
+            setTimeout(() => {
+                document.querySelectorAll('pre').forEach(pre => {
+                    if (!pre.querySelector('.copy-btn')) {
+                        const btn = document.createElement('button');
+                        btn.className = 'copy-btn';
+                        btn.textContent = 'Copy';
+                        btn.onclick = () => {
+                            const code = pre.querySelector('code')?.textContent || pre.textContent;
+                            navigator.clipboard.writeText(code);
+                            btn.textContent = 'Copied!';
+                            setTimeout(() => btn.textContent = 'Copy', 2000);
+                        };
+                        pre.style.position = 'relative';
+                        pre.appendChild(btn);
+                    }
+                });
+            }, 100);
         }
         
         function formatContent(content) {
             if (!content) return '';
             
-            // Format code blocks with language detection
+            // Format code blocks
             let formatted = content.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
                 return `<pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>`;
             });
@@ -896,6 +1026,11 @@
             // Format bold and italic
             formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            
+            // Format headers
+            formatted = formatted.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            formatted = formatted.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            formatted = formatted.replace(/^# (.+)$/gm, '<h1>$1</h1>');
             
             return formatted;
         }
@@ -931,9 +1066,10 @@
                         content: e.target.result
                     });
                     showNotification(`📎 ${file.name} attached`, 'success');
+                    logDebug('File attached', { name: file.name, size: file.size });
                 };
                 
-                if (file.type === 'text/plain' || file.name.endsWith('.js') || file.name.endsWith('.py') || file.name.endsWith('.html')) {
+                if (file.type === 'text/plain' || file.name.match(/\.(js|py|html|css|json|java|cpp|c|go|rs)$/)) {
                     reader.readAsText(file);
                 } else {
                     reader.readAsDataURL(file);
@@ -945,7 +1081,10 @@
         
         // AI Functions
         async function sendMessage() {
-            if (isProcessing) return;
+            if (isProcessing) {
+                showNotification('⏳ Please wait, processing...', 'warning');
+                return;
+            }
             
             if (!DEEPSEEK_API_KEY) {
                 showNotification('⚠️ Please enter your DeepSeek API Key first!', 'error');
@@ -955,7 +1094,10 @@
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
-            if (!message && attachedFiles.length === 0) return;
+            if (!message && attachedFiles.length === 0) {
+                showNotification('📝 Please enter a message', 'warning');
+                return;
+            }
             
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
@@ -966,10 +1108,10 @@
                 userContent += '\n\n[Attached Files:]\n';
                 attachedFiles.forEach(file => {
                     userContent += `\n--- ${file.name} ---\n`;
-                    if (file.type === 'text/plain' || file.name.match(/\.(js|py|html|css|json)$/)) {
+                    if (file.type === 'text/plain' || file.name.match(/\.(js|py|html|css|json|java|cpp|c|go|rs)$/)) {
                         userContent += file.content.substring(0, 3000);
                     } else {
-                        userContent += '[Binary file attached]';
+                        userContent += '[Binary file attached - cannot display content]';
                     }
                 });
             }
@@ -981,13 +1123,15 @@
             
             if (!currentChat.messages) currentChat.messages = [];
             currentChat.messages.push(userMessage);
-            addMessageToUI('user', message);
+            addMessageToUI('user', message || '[File(s) attached]');
             
             input.value = '';
+            const filesToProcess = [...attachedFiles];
             attachedFiles = [];
             isProcessing = true;
             
             showTypingIndicator();
+            logDebug('Sending message to API', { messageLength: userContent.length, filesCount: filesToProcess.length });
             
             try {
                 const aiResponse = await callDeepSeekAPI(currentChat.messages);
@@ -1002,11 +1146,15 @@
                 addMessageToUI('ai', aiResponse);
                 
                 saveCurrentChat();
+                logDebug('Received response', { responseLength: aiResponse.length });
+                showNotification('✅ Response received!', 'success');
                 
             } catch (error) {
                 hideTypingIndicator();
-                addMessageToUI('ai', `❌ Error: ${error.message}`);
+                const errorMsg = `❌ Error: ${error.message}`;
+                addMessageToUI('ai', errorMsg);
                 showNotification(`Error: ${error.message}`, 'error');
+                logDebug('API Error', error);
             } finally {
                 isProcessing = false;
                 sendBtn.disabled = false;
@@ -1016,6 +1164,13 @@
         async function callDeepSeekAPI(messages) {
             try {
                 const model = document.getElementById('modelSelect').value;
+                const apiKey = DEEPSEEK_API_KEY;
+                
+                if (!apiKey) {
+                    throw new Error('API Key is missing');
+                }
+                
+                logDebug('Calling DeepSeek API', { model, messageCount: messages.length });
                 
                 const requestBody = {
                     model: model,
@@ -1034,32 +1189,62 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+                        'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify(requestBody)
                 });
                 
+                logDebug('API Response status', response.status);
+                
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error?.message || `HTTP ${response.status}`);
+                    const errorData = await response.json();
+                    logDebug('API Error Response', errorData);
+                    
+                    if (response.status === 401) {
+                        throw new Error('Invalid API Key. Please check your DeepSeek API key');
+                    } else if (response.status === 429) {
+                        throw new Error('Rate limit exceeded. Please try again later');
+                    } else {
+                        throw new Error(errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+                    }
                 }
                 
                 const data = await response.json();
-                return data.choices[0].message.content;
+                logDebug('API Response data', { 
+                    id: data.id,
+                    model: data.model,
+                    choices: data.choices?.length 
+                });
+                
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error('Invalid response format from API');
+                }
+                
+                const content = data.choices[0].message.content;
+                if (!content) {
+                    throw new Error('Empty response from API');
+                }
+                
+                return content;
                 
             } catch (error) {
-                console.error('DeepSeek API error:', error);
+                console.error('DeepSeek API call failed:', error);
                 throw error;
             }
         }
         
         function writeCode() {
-            document.getElementById('messageInput').value = 'Write code for: ';
+            document.getElementById('messageInput').value = 'Viết code cho tôi: ';
             document.getElementById('messageInput').focus();
         }
         
         function explainCode() {
-            document.getElementById('messageInput').value = 'Please explain this code:\n\n```\n\n```';
+            document.getElementById('messageInput').value = 'Hãy giải thích code này cho tôi:\n\n```\n\n```';
+            document.getElementById('messageInput').focus();
+        }
+        
+        function debugCode() {
+            document.getElementById('messageInput').value = 'Hãy debug đoạn code này và tìm lỗi:\n\n```\n\n```';
             document.getElementById('messageInput').focus();
         }
         
@@ -1072,7 +1257,7 @@
                 <div class="message-content">
                     <div class="avatar ai">DS</div>
                     <div class="text">
-                        <div class="loading"></div> Thinking...
+                        <div class="loading"></div> Đang suy nghĩ...
                     </div>
                 </div>
             `;
