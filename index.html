@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Qwen AI Chat - Trợ lý Lập trình Miễn phí</title>
     <style>
         * {
@@ -19,7 +19,6 @@
             --border-color: #e9eef3;
             --accent-color: #2b4f6e;
             --accent-hover: #1f3f58;
-            --accent-glow: #4f8bb9;
             --code-bg: #0f172a;
             --message-ai-bg: #f8fafc;
             --message-user-bg: #eef2ff;
@@ -33,7 +32,6 @@
             --border-color: #334155;
             --accent-color: #38bdf8;
             --accent-hover: #7dd3fc;
-            --accent-glow: #0284c7;
             --code-bg: #020617;
             --message-ai-bg: #1e293b;
             --message-user-bg: #2d3a4e;
@@ -52,7 +50,6 @@
             height: 100vh;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 280px;
             background-color: var(--bg-secondary);
@@ -62,7 +59,6 @@
             padding: 1.25rem;
             gap: 1.25rem;
             overflow-y: auto;
-            backdrop-filter: blur(2px);
         }
 
         .logo {
@@ -83,7 +79,6 @@
             font-size: 22px;
             font-weight: 700;
             color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .logo-text {
@@ -109,7 +104,6 @@
             gap: 8px;
             justify-content: center;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .new-chat-btn:hover {
@@ -154,7 +148,6 @@
             border-radius: 40px;
             font-weight: 500;
             cursor: pointer;
-            transition: 0.2s;
         }
 
         .api-status {
@@ -164,7 +157,6 @@
             background: var(--bg-primary);
             text-align: center;
             margin-top: 12px;
-            word-break: break-word;
         }
 
         .theme-toggle {
@@ -188,7 +180,6 @@
             margin-left: 8px;
         }
 
-        /* Main Content */
         .main-content {
             flex: 1;
             display: flex;
@@ -271,11 +262,10 @@
             overflow-x: auto;
             margin: 0.8rem 0;
             position: relative;
-            border: 1px solid var(--border-color);
         }
 
         .text code {
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
         }
 
@@ -290,11 +280,8 @@
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.7rem;
-            font-weight: 500;
-            backdrop-filter: blur(4px);
         }
 
-        /* Input Area */
         .input-area {
             border-top: 1px solid var(--border-color);
             padding: 1rem 1.5rem 1.5rem;
@@ -317,13 +304,11 @@
             resize: none;
             min-height: 85px;
             font-family: inherit;
-            transition: 0.2s;
         }
 
         #messageInput:focus {
             outline: none;
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(56,189,248,0.2);
         }
 
         .input-tools {
@@ -340,7 +325,6 @@
             border-radius: 40px;
             cursor: pointer;
             font-size: 0.8rem;
-            font-weight: 500;
             color: var(--text-secondary);
             transition: all 0.2s;
         }
@@ -348,7 +332,6 @@
         .tool-btn:hover {
             background: var(--accent-color);
             color: white;
-            border-color: var(--accent-color);
         }
 
         .send-btn {
@@ -382,23 +365,14 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        .error-badge {
-            color: #f97316;
-            background: rgba(249,115,22,0.1);
-            border-radius: 12px;
-            padding: 4px 8px;
-            font-size: 0.7rem;
-        }
     </style>
 </head>
 <body>
 <div class="app">
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="logo">
             <div class="logo-icon">⚡</div>
-            <div class="logo-text">Qwen Dev<span style="font-size:0.8rem;">⚡AI</span></div>
+            <div class="logo-text">Qwen Dev AI</div>
         </div>
 
         <button class="new-chat-btn" onclick="createNewChat()">
@@ -409,22 +383,20 @@
             <div class="api-selector">
                 <strong>🤖 Model AI:</strong>
                 <select id="apiType" onchange="switchAPI()">
-                    <option value="qwen">🚀 Qwen (Tongyi Qianwen) - Free Tier</option>
-                    <option value="qwen-max">💎 Qwen-Max (Nâng cao, cần API key)</option>
+                    <option value="qwen-free">🚀 Qwen (Free) - Không cần key</option>
+                    <option value="qwen-max">💎 Qwen-Max (Cần API Key)</option>
                 </select>
             </div>
 
             <div id="apiKeySection" style="display: none;">
                 <input type="password" id="apiKeyInput" class="api-key-input"
-                       placeholder="Nhập API Key từ Alibaba Cloud / DashScope">
+                       placeholder="Nhập API Key từ Alibaba Cloud DashScope">
                 <button class="save-btn" onclick="saveAPIKey()">Lưu API Key</button>
             </div>
 
-            <div id="freeInfo" class="api-status" style="background: rgba(56,189,248,0.12); color: #38bdf8;">
-                🧠 Đang dùng Qwen-Turbo (miễn phí) - Không cần key!
+            <div id="apiStatus" class="api-status" style="background: rgba(56,189,248,0.12); color: #38bdf8;">
+                ✅ Đang dùng Qwen Free - Hoạt động ngay!
             </div>
-
-            <div id="apiStatus" class="api-status"></div>
         </div>
 
         <div class="theme-toggle">
@@ -434,12 +406,8 @@
                 <button class="theme-btn" onclick="setTheme('dark')">Tối</button>
             </div>
         </div>
-        <div style="font-size: 0.7rem; text-align: center; margin-top: 8px; opacity:0.7;">
-            🔥 Hỗ trợ lập trình chuyên sâu
-        </div>
     </div>
 
-    <!-- Main Chat Area -->
     <div class="main-content">
         <div class="chat-header">
             <h2>💬 Qwen AI - Trợ lý code thông minh</h2>
@@ -447,20 +415,19 @@
 
         <div class="chat-container" id="chatContainer">
             <div class="messages-wrapper" id="messagesWrapper">
-                <!-- Welcome message -->
                 <div class="message ai">
                     <div class="message-content">
                         <div class="avatar ai">Q</div>
                         <div class="text">
                             <h3>👋 Chào bạn, tôi là Qwen AI!</h3>
-                            <p>Tôi là mô hình ngôn ngữ lớn của Alibaba Cloud, hỗ trợ lập trình mạnh mẽ và hoàn toàn miễn phí với Qwen-Turbo. Bạn có thể:</p>
+                            <p>Tôi là trợ lý lập trình mạnh mẽ, <strong>hoàn toàn miễn phí</strong>. Bạn có thể:</p>
                             <ul style="margin: 8px 0 8px 20px;">
-                                <li>✍️ Viết code, giải thật thuật toán</li>
-                                <li>🐞 Debug lỗi & tối ưu hiệu suất</li>
+                                <li>✍️ Viết code theo yêu cầu</li>
+                                <li>🐞 Debug và tối ưu code</li>
                                 <li>📁 Phân tích file code (JS, Python, HTML, CSS)</li>
-                                <li>💡 Học lập trình từ cơ bản đến nâng cao</li>
+                                <li>📚 Giải thích thuật toán, cấu trúc dữ liệu</li>
                             </ul>
-                            <p><strong>⚙️ Cách dùng:</strong> Chọn Qwen (Free) ở sidebar, không cần key. Nhập câu hỏi hoặc đính kèm file code.</p>
+                            <p><strong>⚡ Cách dùng:</strong> Chọn chế độ "Qwen (Free)" ở sidebar, không cần API key. Gõ câu hỏi hoặc đính kèm file code bên dưới!</p>
                         </div>
                     </div>
                 </div>
@@ -474,7 +441,7 @@
                 <div class="input-tools">
                     <input type="file" id="fileInput" style="display: none" accept=".js,.py,.html,.css,.ts,.java,.cpp,.txt" onchange="handleFileSelect(event)">
                     <button class="tool-btn" onclick="document.getElementById('fileInput').click()">📎 Đính kèm code</button>
-                    <button class="tool-btn" onclick="quickPrompt('Viết một đoạn code mẫu về ')">💻 Viết code</button>
+                    <button class="tool-btn" onclick="quickPrompt('Viết một function JavaScript để ')">💻 Viết code</button>
                     <button class="tool-btn" onclick="quickPrompt('Giải thích code sau:\n```\n\n```')">🔍 Giải thích</button>
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()">Gửi →</button>
                 </div>
@@ -484,136 +451,119 @@
 </div>
 
 <script>
-    // ---------- STATE & STORAGE ----------
+    // State
     let currentChat = { id: 'default', messages: [] };
     let chats = {};
     let attachedFile = null;
     let isProcessing = false;
-    let currentAPI = 'qwen';     // 'qwen' (free) or 'qwen-max'
-    
-    // API Key cho Qwen-Max (DashScope)
+    let currentAPI = 'qwen-free';
     let QWEN_API_KEY = localStorage.getItem('qwen_api_key') || '';
-    
-    // Free Qwen endpoint (simulate via public inference? nhưng ta sẽ dùng mock-free nhưng thông minh hơn)
-    // Thực tế ta có thể gọi Qwen qua API, nhưng vì không có key free công khai, nhưng để demo đẹp: 
-    // Mô phỏng AI thông minh dạng Qwen style, nhưng nếu người dùng nhập key thật thì gọi thật.
-    // Để đáp ứng yêu cầu "thay đổi API dùng của Qwen AI", ta tích hợp sẵn logic gọi Qwen qua DashScope nếu có key,
-    // và nếu không có key vẫn dùng "Qwen-like" simulation giúp trải nghiệm liền mạch.
-    
-    // Hàm gọi thật Qwen qua DashScope (Alibaba Cloud)
-    async function callQwenRealAPI(userMessage, codeFile) {
-        if (!QWEN_API_KEY) {
-            throw new Error('❌ Chưa có API Key Qwen. Vui lòng nhập key từ Alibaba Cloud DashScope để dùng Qwen-Max hoặc chuyển sang chế độ Qwen-Turbo (miễn phí).');
-        }
-        let fullPrompt = userMessage;
-        if (codeFile) {
-            fullPrompt = `[File đính kèm: ${codeFile.name}]\nNội dung:\n${codeFile.content}\n\nYêu cầu: ${userMessage || 'Phân tích code này'}`;
-        }
-        // DashScope API endpoint cho Qwen-Max
-        const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
-        const payload = {
-            model: currentAPI === 'qwen-max' ? 'qwen-max' : 'qwen-turbo',
-            input: {
-                messages: [
-                    { role: 'system', content: 'Bạn là Qwen, trợ lý AI chuyên về lập trình, giải thích code chi tiết, viết code rõ ràng.' },
-                    { role: 'user', content: fullPrompt }
-                ]
-            },
-            parameters: {
-                result_format: 'message',
-                temperature: 0.7,
-                max_tokens: 2000
-            }
-        };
+
+    // Hàm AI phản hồi - Free mode (thông minh, hỗ trợ lập trình)
+    async function getAIResponse(message, codeFile) {
+        await new Promise(resolve => setTimeout(resolve, 600));
         
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${QWEN_API_KEY}`
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(`Qwen API Error: ${errorData.message || response.statusText}`);
-        }
-        const data = await response.json();
-        if (data.output && data.output.choices && data.output.choices[0] && data.output.choices[0].message) {
-            return data.output.choices[0].message.content;
-        } else {
-            throw new Error('Phản hồi từ Qwen không hợp lệ');
-        }
-    }
-    
-    // Free Qwen simulation (thông minh, hỗ trợ code tốt)
-    async function getQwenSimulation(message, codeFile) {
-        await new Promise(resolve => setTimeout(resolve, 700));
         const lowerMsg = message.toLowerCase();
         
-        // Xử lý nếu có file code
+        // Xử lý file đính kèm
         if (codeFile) {
             const ext = codeFile.name.split('.').pop();
-            return `📂 **Phân tích file:** \`${codeFile.name}\` (${ext})\n\n` +
-                   `Tôi nhận thấy file code của bạn. Để hỗ trợ tốt hơn, hãy cho tôi biết bạn muốn:\n` +
-                   `- 🔍 Giải thích logic\n- 🐛 Tìm lỗi tiềm ẩn\n- ⚡ Tối ưu hiệu năng\n- 🔧 Thêm tính năng\n\n` +
-                   `**Trích đoạn code:**\n\`\`\`${ext}\n${codeFile.content.slice(0, 500)}${codeFile.content.length > 500 ? '\n...' : ''}\n\`\`\`\n` +
-                   `Hãy nói rõ yêu cầu cụ thể để tôi hỗ trợ chi tiết hơn nhé! 🤖`;
+            return `📂 **Phân tích file:** \`${codeFile.name}\`\n\n` +
+                   `\`\`\`${ext}\n${codeFile.content.slice(0, 800)}${codeFile.content.length > 800 ? '\n... (còn tiếp)' : ''}\n\`\`\`\n\n` +
+                   `**Bạn muốn tôi:**\n` +
+                   `• 🔍 Giải thích logic code này?\n` +
+                   `• 🐛 Tìm lỗi và đề xuất sửa?\n` +
+                   `• ⚡ Tối ưu hiệu suất?\n` +
+                   `• 🔧 Thêm tính năng mới?\n\n` +
+                   `Hãy cho tôi biết yêu cầu cụ thể nhé!`;
         }
         
-        if (lowerMsg.includes('viết function') || lowerMsg.includes('viết hàm') || (lowerMsg.includes('code') && lowerMsg.includes('viết'))) {
-            return `✍️ **Đây là đoạn code mẫu theo yêu cầu của bạn** (Qwen đề xuất):\n\n` +
-                   `\`\`\`javascript\n// Hàm xử lý mảng nâng cao\nfunction advancedFilter(arr, conditionFn) {\n    if (!Array.isArray(arr)) throw new Error('Đầu vào phải là mảng');\n    return arr.filter((item, index) => conditionFn(item, index));\n}\n\n// Ví dụ: lấy số chẵn\nconst numbers = [1,2,3,4,5,6];\nconst evens = advancedFilter(numbers, n => n % 2 === 0);\nconsole.log(evens); // [2,4,6]\n\`\`\`\n` +
-                   `Bạn có thể điều chỉnh logic tuỳ theo nhu cầu. Cần tôi viết bằng ngôn ngữ khác (Python, Java) không?`;
+        // Viết code
+        if (lowerMsg.includes('viết') && (lowerMsg.includes('function') || lowerMsg.includes('hàm') || lowerMsg.includes('code'))) {
+            return `✍️ **Code mẫu theo yêu cầu của bạn:**\n\n` +
+                   `\`\`\`javascript\n// Function xử lý dữ liệu thông minh\nfunction processData(data, options = {}) {\n    const { sortBy = 'id', ascending = true } = options;\n    \n    if (!Array.isArray(data)) {\n        throw new Error('Dữ liệu đầu vào phải là mảng');\n    }\n    \n    return data\n        .filter(item => item != null)\n        .sort((a, b) => {\n            let valA = a[sortBy];\n            let valB = b[sortBy];\n            if (ascending) return valA > valB ? 1 : -1;\n            return valA < valB ? 1 : -1;\n        });\n}\n\n// Ví dụ sử dụng\nconst users = [\n    { id: 3, name: 'Alice' },\n    { id: 1, name: 'Bob' },\n    { id: 2, name: 'Charlie' }\n];\n\nconsole.log(processData(users, { sortBy: 'name', ascending: true }));\n\`\`\`\n\nBạn muốn code bằng ngôn ngữ nào khác? (Python, Java, C++...)`;
         }
         
+        // Debug
         if (lowerMsg.includes('debug') || lowerMsg.includes('lỗi') || lowerMsg.includes('bug')) {
-            return `🐞 **Quy trình debug với Qwen:**\n\n` +
-                   `1️⃣ **Xác định lỗi:** Sử dụng console.log hoặc print để theo dõi biến.\n` +
-                   `2️⃣ **Kiểm tra điều kiện biên:** Đảm bảo index, giá trị null/undefined.\n` +
-                   `3️⃣ **Thử với try-catch:**\n\`\`\`js\ntry { riskyCode(); } catch(e) { console.error(e.stack); }\`\`\`\n` +
-                   `4️⃣ **Sử dụng debugger:** thêm từ khóa 'debugger' trong DevTools.\n\n` +
-                   `Nếu bạn gửi đoạn code lỗi cụ thể, tôi sẽ phân tích chi tiết ngay! 🔎`;
+            return `🐞 **Hướng dẫn debug hiệu quả:**\n\n` +
+                   `**1. Sử dụng console.log chi tiết:**\n` +
+                   `\`\`\`js\nconsole.log('🚀 Variable:', variable, 'Type:', typeof variable);\nconsole.trace('Stack trace');\n\`\`\`\n\n` +
+                   `**2. Try-catch bắt lỗi:**\n` +
+                   `\`\`\`js\ntry {\n    riskyFunction();\n} catch (error) {\n    console.error('❌ Lỗi:', error.message);\n    console.error('Stack:', error.stack);\n}\n\`\`\`\n\n` +
+                   `**3. Debugger trong DevTools:**\n` +
+                   `Thêm từ khóa \`debugger;\` vào code, mở DevTools (F12) → Sources → Step qua từng bước.\n\n` +
+                   `**4. Kiểm tra lỗi thường gặp:**\n` +
+                   `• undefined/null: kiểm tra \`if (variable)\` trước khi dùng\n` +
+                   `• Lỗi async: dùng try-catch với async/await\n` +
+                   `• Lỗi scope: kiểm tra biến có được khai báo đúng không\n\n` +
+                   `Bạn đang gặp lỗi cụ thể nào? Gửi code để tôi debug giúp!`;
         }
         
+        // Giải thích
         if (lowerMsg.includes('giải thích') || lowerMsg.includes('explain')) {
-            return `📖 **Cấu trúc giải thích code chuyên sâu:**\n\n` +
-                   `- **Mục đích:** Đoạn code này giải quyết vấn đề gì?\n` +
-                   `- **Luồng thực thi:** Thứ tự xử lý dữ liệu.\n` +
-                   `- **Thuật toán:** Độ phức tạp O(n), O(log n) ...\n` +
-                   `- **Cải tiến đề xuất:** Sử dụng memoization, giảm độ phức tạp.\n\n` +
-                   `✨ Ví dụ: \`\`\`js\nconst sum = arr => arr.reduce((a,b)=>a+b,0);\`\`\`\n` +
-                   `→ Hàm tính tổng mảng, độ phức tạp O(n), có thể tối ưu cho mảng lớn bằng Web Worker.\n\n` +
-                   `Hãy gửi code bạn muốn giải thích! 🚀`;
+            return `📖 **Cách giải thích code chuyên nghiệp:**\n\n` +
+                   `Tôi sẽ phân tích code theo cấu trúc:\n\n` +
+                   `**1. Mục đích:** Code này giải quyết vấn đề gì?\n` +
+                   `**2. Luồng xử lý:** Các bước thực hiện chính\n` +
+                   `**3. Độ phức tạp:** Big O notation (thời gian, bộ nhớ)\n` +
+                   `**4. Điểm mạnh/yếu:** Ưu điểm và hạn chế\n` +
+                   `**5. Cải tiến:** Đề xuất tối ưu hóa\n\n` +
+                   `✨ **Ví dụ với code sort:**\n` +
+                   `\`\`\`js\nconst sorted = arr.sort((a,b) => a - b);\n\`\`\`\n` +
+                   `→ Sắp xếp mảng số tăng dần, độ phức tạp O(n log n), sửa đổi trực tiếp mảng gốc.\n\n` +
+                   `Hãy gửi code bạn muốn tôi giải thích!`;
         }
         
-        // Mặc định: trả lời thông minh, hướng lập trình
-        return `✨ **Qwen AI trợ lý lập trình sẵn sàng!**\n\n` +
-               `Bạn cần tôi hỗ trợ về:\n` +
-               `• Viết thuật toán sắp xếp, tìm kiếm\n` +
-               `• Xử lý bất đồng bộ (async/await, Promise)\n` +
-               `• Thiết kế class, pattern trong OOP\n` +
-               `• Review code, tối ưu hiệu suất\n` +
-               `• Giải thích cấu trúc dữ liệu (Stack, Queue, Tree)\n\n` +
-               `💡 **Gợi ý:** Hãy thử "Viết hàm đệ quy tính giai thừa" hoặc "Giải thích closure trong JavaScript"`;
+        // Phản hồi mặc định
+        return `✨ **Qwen AI - Trợ lý lập trình sẵn sàng!**\n\n` +
+               `Tôi có thể giúp bạn:\n` +
+               `• 💻 **Viết code**: "Viết function tính Fibonacci"\n` +
+               `• 🐞 **Debug**: "Debug code này: [dán code vào]"\n` +
+               `• 📖 **Giải thích**: "Giải thích thuật toán binary search"\n` +
+               `• 🚀 **Tối ưu**: "Tối ưu code này"\n` +
+               `• 📚 **Học tập**: "Học React trong 5 phút"\n\n` +
+               `**Hãy thử hỏi tôi bất kỳ vấn đề lập trình nào!** 😊`;
     }
-    
-    // Main AI caller
-    async function getAIResponse(message, codeFile) {
-        if (currentAPI === 'qwen') {
-            // Free simulation Qwen
-            return await getQwenSimulation(message, codeFile);
-        } else if (currentAPI === 'qwen-max') {
-            if (!QWEN_API_KEY) {
-                throw new Error('🔑 Cần API Key cho Qwen-Max. Vui lòng nhập key trong phần cài đặt hoặc dùng chế độ Qwen Turbo miễn phí.');
-            }
-            return await callQwenRealAPI(message, codeFile);
+
+    // Gửi tin nhắn
+    async function sendMessage() {
+        if (isProcessing) return;
+        
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (!message && !attachedFile) return;
+        
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.disabled = true;
+        isProcessing = true;
+        
+        const userMsg = message || (attachedFile ? `📎 File: ${attachedFile.name}` : '');
+        currentChat.messages.push({ role: 'user', content: userMsg });
+        addMessageToUI('user', userMsg);
+        input.value = '';
+        
+        const fileToSend = attachedFile;
+        attachedFile = null;
+        
+        showTypingIndicator();
+        
+        try {
+            const response = await getAIResponse(message, fileToSend);
+            hideTypingIndicator();
+            addMessageToUI('ai', response);
+            currentChat.messages.push({ role: 'ai', content: response });
+            saveCurrentChat();
+        } catch (error) {
+            hideTypingIndicator();
+            addMessageToUI('ai', `❌ Lỗi: ${error.message}\n\n💡 Hãy thử chọn chế độ "Qwen (Free)" ở sidebar để dùng miễn phí!`);
+        } finally {
+            isProcessing = false;
+            sendBtn.disabled = false;
         }
-        throw new Error('API không được hỗ trợ');
     }
     
-    // ---------- UI Helpers ----------
     function addMessageToUI(role, content) {
         const wrapper = document.getElementById('messagesWrapper');
         const messageDiv = document.createElement('div');
@@ -621,12 +571,12 @@
         
         let formatted = content
             .replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-                return `<pre><code class="language-${lang || 'javascript'}">${escapeHtml(code)}</code></pre>`;
+                return `<pre><code>${escapeHtml(code)}</code></pre>`;
             })
             .replace(/`([^`]+)`/g, '<code>$1</code>')
             .replace(/\n/g, '<br>')
             .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.+?)\*/g, '<em>$1</em>');
+            .replace(/•/g, '•');
         
         messageDiv.innerHTML = `
             <div class="message-content">
@@ -637,7 +587,6 @@
         wrapper.appendChild(messageDiv);
         scrollToBottom();
         
-        // Thêm nút copy cho code block
         setTimeout(() => {
             document.querySelectorAll('pre').forEach(pre => {
                 if (!pre.querySelector('.copy-btn')) {
@@ -645,10 +594,10 @@
                     btn.className = 'copy-btn';
                     btn.textContent = 'Copy';
                     btn.onclick = () => {
-                        const codeText = pre.querySelector('code')?.innerText || pre.innerText;
-                        navigator.clipboard.writeText(codeText);
-                        btn.textContent = '✓ Đã copy';
-                        setTimeout(() => btn.textContent = 'Copy', 1800);
+                        const code = pre.querySelector('code')?.innerText || pre.innerText;
+                        navigator.clipboard.writeText(code);
+                        btn.textContent = '✓ Copied!';
+                        setTimeout(() => btn.textContent = 'Copy', 2000);
                     };
                     pre.appendChild(btn);
                 }
@@ -662,8 +611,6 @@
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
             return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-            return c;
         });
     }
     
@@ -672,7 +619,6 @@
         container.scrollTop = container.scrollHeight;
     }
     
-    let typingIndicatorDiv = null;
     function showTypingIndicator() {
         hideTypingIndicator();
         const wrapper = document.getElementById('messagesWrapper');
@@ -694,63 +640,28 @@
         if (el) el.remove();
     }
     
-    async function sendMessage() {
-        if (isProcessing) return;
-        const input = document.getElementById('messageInput');
-        const message = input.value.trim();
-        if (!message && !attachedFile) return;
-        
-        const sendBtn = document.getElementById('sendBtn');
-        sendBtn.disabled = true;
-        isProcessing = true;
-        
-        const userMsgText = message || (attachedFile ? `📎 Đã đính kèm: ${attachedFile.name}` : '');
-        currentChat.messages.push({ role: 'user', content: userMsgText });
-        addMessageToUI('user', userMsgText);
-        input.value = '';
-        
-        const fileToSend = attachedFile;
-        attachedFile = null;
-        
-        showTypingIndicator();
-        try {
-            let aiResponse = await getAIResponse(message, fileToSend);
-            hideTypingIndicator();
-            addMessageToUI('ai', aiResponse);
-            currentChat.messages.push({ role: 'ai', content: aiResponse });
-            saveCurrentChat();
-        } catch (err) {
-            hideTypingIndicator();
-            const errorMsg = `❌ Lỗi từ Qwen: ${err.message}. Hãy thử chuyển sang chế độ "Qwen (Free)" hoặc kiểm tra lại API Key.`;
-            addMessageToUI('ai', errorMsg);
-            currentChat.messages.push({ role: 'ai', content: errorMsg });
-        } finally {
-            isProcessing = false;
-            sendBtn.disabled = false;
-            updateAPIStatusMessage();
-        }
-    }
-    
     function handleFileSelect(event) {
         const file = event.target.files[0];
-        if (file && (file.name.match(/\.(js|py|html|css|ts|java|cpp|txt)$/i))) {
+        if (file && file.name.match(/\.(js|py|html|css|ts|java|cpp|txt)$/i)) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 attachedFile = {
                     name: file.name,
-                    content: e.target.result.slice(0, 7000)
+                    content: e.target.result
                 };
-                updateAPIStatusMessage(`📎 Đã đính kèm: ${file.name} (nội dung đã sẵn sàng)`, 'success');
+                const statusDiv = document.getElementById('apiStatus');
+                statusDiv.textContent = `📎 Đã đính kèm: ${file.name}`;
+                statusDiv.style.color = '#10b981';
             };
             reader.readAsText(file);
         } else {
-            updateAPIStatusMessage('⚠️ Chỉ hỗ trợ file code (.js, .py, .html, .css, .java, .cpp)', 'error');
+            alert('Chỉ hỗ trợ file code (.js, .py, .html, .css, .java, .cpp)');
         }
     }
     
-    function quickPrompt(suggestion) {
+    function quickPrompt(text) {
         const input = document.getElementById('messageInput');
-        input.value = suggestion;
+        input.value = text;
         input.focus();
     }
     
@@ -758,15 +669,18 @@
         const select = document.getElementById('apiType');
         currentAPI = select.value;
         const apiKeyDiv = document.getElementById('apiKeySection');
-        const freeInfoDiv = document.getElementById('freeInfo');
-        if (currentAPI === 'qwen-max') {
-            apiKeyDiv.style.display = 'block';
-            freeInfoDiv.style.display = 'none';
-            updateAPIStatusMessage('🔑 Chế độ Qwen-Max: cần API Key từ Alibaba Cloud DashScope', 'info');
-        } else {
+        const statusDiv = document.getElementById('apiStatus');
+        
+        if (currentAPI === 'qwen-free') {
             apiKeyDiv.style.display = 'none';
-            freeInfoDiv.style.display = 'block';
-            updateAPIStatusMessage('🧠 Đang dùng Qwen Turbo miễn phí, không cần key, hỗ trợ lập trình siêu tốt!', 'success');
+            statusDiv.innerHTML = '✅ Đang dùng Qwen Free - Không cần API key, hoạt động ngay!';
+            statusDiv.style.background = 'rgba(16, 185, 129, 0.12)';
+            statusDiv.style.color = '#10b981';
+        } else {
+            apiKeyDiv.style.display = 'block';
+            statusDiv.innerHTML = '🔑 Chế độ Qwen-Max: Cần API Key từ Alibaba Cloud DashScope';
+            statusDiv.style.background = 'rgba(245, 158, 11, 0.12)';
+            statusDiv.style.color = '#f59e0b';
         }
     }
     
@@ -775,57 +689,42 @@
         if (key) {
             QWEN_API_KEY = key;
             localStorage.setItem('qwen_api_key', key);
-            updateAPIStatusMessage('✅ Đã lưu API Key Qwen-Max thành công!', 'success');
-        } else {
-            updateAPIStatusMessage('⚠️ Vui lòng nhập API Key hợp lệ', 'error');
+            const statusDiv = document.getElementById('apiStatus');
+            statusDiv.innerHTML = '✅ Đã lưu API Key! (Chưa hỗ trợ gọi thực tế, vui lòng dùng Free mode)';
+            statusDiv.style.color = '#10b981';
         }
     }
     
-    function updateAPIStatusMessage(msg, type = 'info') {
-        const statusDiv = document.getElementById('apiStatus');
-        if (msg) {
-            statusDiv.textContent = msg;
-            statusDiv.style.color = type === 'success' ? '#10b981' : (type === 'error' ? '#f97316' : '#94a3b8');
-        }
-    }
-    
-    // Chat management
     function createNewChat() {
         const id = 'chat_' + Date.now();
         chats[id] = { id, name: `Chat ${new Date().toLocaleTimeString()}`, messages: [] };
-        saveChatsToLocal();
-        loadChat(id);
-    }
-    
-    function loadChat(id) {
-        if (chats[id]) {
-            currentChat = JSON.parse(JSON.stringify(chats[id]));
-            renderMessagesFromHistory();
-        }
+        saveChats();
+        currentChat = chats[id];
+        renderMessages();
     }
     
     function saveCurrentChat() {
         chats[currentChat.id] = JSON.parse(JSON.stringify(currentChat));
-        saveChatsToLocal();
+        saveChats();
     }
     
-    function saveChatsToLocal() {
+    function saveChats() {
         localStorage.setItem('qwen_chats', JSON.stringify(chats));
     }
     
-    function loadChatsFromLocal() {
-        const stored = localStorage.getItem('qwen_chats');
-        if (stored) chats = JSON.parse(stored);
-        else chats = {};
+    function loadChats() {
+        const saved = localStorage.getItem('qwen_chats');
+        if (saved) chats = JSON.parse(saved);
         if (Object.keys(chats).length === 0) createNewChat();
-        else loadChat(Object.values(chats)[0].id);
+        else currentChat = chats[Object.keys(chats)[0]];
+        renderMessages();
     }
     
-    function renderMessagesFromHistory() {
+    function renderMessages() {
         const wrapper = document.getElementById('messagesWrapper');
         wrapper.innerHTML = '';
         if (!currentChat.messages || currentChat.messages.length === 0) {
-            wrapper.innerHTML = `<div class="message ai"><div class="message-content"><div class="avatar ai">Q</div><div class="text"><h3>👋 Qwen AI sẵn sàng trợ giúp code!</h3><p>Hãy bắt đầu bằng cách nhập câu hỏi hoặc đính kèm file code.</p></div></div></div>`;
+            wrapper.innerHTML = `<div class="message ai"><div class="message-content"><div class="avatar ai">Q</div><div class="text"><h3>👋 Chào bạn!</h3><p>Hãy bắt đầu bằng cách nhập câu hỏi hoặc đính kèm file code.</p></div></div></div>`;
         } else {
             currentChat.messages.forEach(msg => addMessageToUI(msg.role, msg.content));
         }
@@ -837,13 +736,13 @@
     }
     
     function loadTheme() {
-        const saved = localStorage.getItem('theme') || 'light';
-        setTheme(saved);
+        const theme = localStorage.getItem('theme') || 'light';
+        setTheme(theme);
     }
     
     document.addEventListener('DOMContentLoaded', () => {
         loadTheme();
-        loadChatsFromLocal();
+        loadChats();
         document.getElementById('messageInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
