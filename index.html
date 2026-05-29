@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Smart Home - Điều khiển & Giám sát ESP32</title>
     <style>
         * {
@@ -16,6 +16,7 @@
             background: linear-gradient(145deg, #F9E45B 0%, #F7D44A 100%);
             min-height: 100vh;
             padding: 16px;
+            overflow-x: hidden;
         }
 
         .container {
@@ -57,6 +58,26 @@
             border-radius: 40px;
         }
 
+        .logout-btn {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: #FFF3D1;
+            border: 1px solid #FFD895;
+            color: #B45F1B;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 11px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #FFE082;
+            transform: scale(1.05);
+        }
+
         /* Status Cards */
         .status-connection {
             text-align: center;
@@ -80,6 +101,27 @@
             background: #FFE8E6;
             color: #B53B2E;
             border-left: 5px solid #F44336;
+        }
+
+        .auth-status {
+            text-align: center;
+            padding: 8px 12px;
+            margin-bottom: 20px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .auth-status.success {
+            background: #E9F7E1;
+            color: #2C6E2F;
+            border: 1px solid #4CAF50;
+        }
+
+        .auth-status.failed {
+            background: #FFE8E6;
+            color: #B53B2E;
+            border: 1px solid #F44336;
         }
 
         /* Sensor Container */
@@ -124,21 +166,6 @@
             border: 1px solid #FFE2A4;
             position: relative;
             overflow: hidden;
-        }
-
-        .sensor-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .sensor-card.updating::before {
-            left: 100%;
         }
 
         .sensor-card.temp-alert {
@@ -341,6 +368,7 @@
         .fan-icon {
             font-size: 80px;
             transition: all 0.2s;
+            display: inline-block;
         }
 
         .fan-icon.quat-on {
@@ -380,26 +408,226 @@
             color: white;
         }
 
-        .fan-info-note {
-            margin-top: 12px;
+        /* =============================================
+           OVERLAY SCREEN - CĂN GIỮA + SCROLL DÀI
+           ============================================= */
+        .overlay-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
+            background: linear-gradient(145deg, #F9E45B 0%, #F7D44A 100%);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .overlay-screen.hidden {
+            display: none !important;
+        }
+
+        /* Thanh cuộn đẹp mắt */
+        .overlay-screen::-webkit-scrollbar {
+            width: 5px;
+        }
+        .overlay-screen::-webkit-scrollbar-track {
+            background: rgba(255, 216, 149, 0.3);
+            border-radius: 10px;
+        }
+        .overlay-screen::-webkit-scrollbar-thumb {
+            background: #F9A825;
+            border-radius: 10px;
+        }
+        .overlay-screen::-webkit-scrollbar-thumb:hover {
+            background: #F57F17;
+        }
+
+        .screen-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 36px;
+            padding: 36px 28px 40px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 230, 163, 0.5);
+            margin: 20px auto;
+            transition: transform 0.3s ease;
+        }
+
+        /* Thanh kéo - đẹp hơn */
+        .drag-handle {
+            width: 70px;
+            height: 6px;
+            background: linear-gradient(90deg, #F9A825, #F57F17);
+            border-radius: 10px;
+            margin: -28px auto 24px auto;
+            opacity: 0.9;
+            transition: all 0.2s;
+        }
+
+        .drag-handle:active {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
             font-size: 12px;
-            color: #BF7B3C;
+            font-weight: 700;
+            color: #9B6A3C;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding: 14px 50px 14px 18px;
+            border: 2px solid #FFD895;
+            border-radius: 20px;
+            font-size: 15px;
+            color: #5C3E1B;
+            background: #FFFBF0;
+            outline: none;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .password-wrapper input:focus {
+            border-color: #F9A825;
+            box-shadow: 0 0 0 4px rgba(249, 168, 37, 0.15);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: none;
+            color: #BC884D;
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .toggle-password:hover {
+            background: #FFF0D0;
+            transform: scale(1.05);
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #F9A825 0%, #F57F17 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 800;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(245, 127, 23, 0.35);
+            margin-top: 8px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #FFB300 0%, #E65100 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 127, 23, 0.45);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #78909C 0%, #546E7A 100%);
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #607D8B 0%, #455A64 100%);
+            transform: translateY(-1px);
+        }
+
+        .error-msg, .success-msg, .warning-msg {
+            border-radius: 16px;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .error-msg {
+            background: #FFEBEE;
+            color: #C62828;
+            border: 1px solid #EF9A9A;
+        }
+
+        .success-msg {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border: 1px solid #A5D6A7;
+        }
+
+        .warning-msg {
+            background: #FFF3E0;
+            color: #E65100;
+            border: 1px solid #FFB74D;
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         .toast {
             position: fixed;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             background: #4CAF50;
             color: white;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
             z-index: 10000;
-            transition: transform 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 80%;
         }
 
         .toast.show {
@@ -407,9 +635,43 @@
         }
 
         .btn-loading {
-            opacity: 0.6;
+            opacity: 0.7;
             pointer-events: none;
             cursor: not-allowed;
+            transform: scale(0.98);
+        }
+
+        .no-copy {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input.no-copy {
+            user-select: auto;
+            -webkit-user-select: auto;
+        }
+
+        /* Divider đẹp */
+        .divider-custom {
+            margin: 24px 0;
+            text-align: center;
+            position: relative;
+        }
+        .divider-custom hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #FFD895, #F9A825, #FFD895, transparent);
+        }
+        .divider-custom span {
+            background: rgba(255, 255, 255, 0.97);
+            padding: 0 18px;
+            color: #B45F1B;
+            font-size: 13px;
+            font-weight: 600;
+            position: relative;
+            top: -10px;
         }
 
         @media (max-width: 480px) {
@@ -417,391 +679,553 @@
             .lights-container { gap: 12px; }
             .device-icon { font-size: 50px; }
             .sensor-value { font-size: 22px; }
+            .screen-card { padding: 28px 20px 32px; margin: 15px auto; border-radius: 32px; }
+            .drag-handle { width: 55px; margin: -22px auto 20px auto; }
+            .btn-primary, .btn-secondary { padding: 14px; }
         }
     </style>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
-    <!-- Giao diện chính -->
-    <div id="mainApp">
-        <div class="container">
-            <div class="header">
-                <h1>🏠 Smart Home <span style="font-size:0.9rem">🌻</span></h1>
-                <div class="subtitle">⚡ Giám sát & Điều khiển từ ESP32</div>
+
+<!-- Màn hình cấu hình MQTT -->
+<div id="mqttConfigScreen" class="overlay-screen">
+    <div class="screen-card">
+        <div class="drag-handle"></div>
+        <div style="text-align:center; margin-bottom:20px">
+            <span style="font-size:56px">🔌</span>
+            <h2 style="color:#B45F1B; margin-top: 8px;">Cấu hình MQTT</h2>
+            <p style="color:#AA6F3C; font-size:13px">Nhập thông tin kết nối MQTT Broker</p>
+        </div>
+        <div class="form-group">
+            <label>🌐 MQTT Broker URL (wss://)</label>
+            <div class="password-wrapper">
+                <input type="password" id="brokerUrl" placeholder="wss://broker.emqx.io:8084/mqtt" class="no-copy" autocomplete="off" value="wss://broker.emqx.io:8084/mqtt">
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('brokerUrl', this)">👁️</button>
             </div>
+        </div>
+        <div class="form-group">
+            <label>👤 Username</label>
+            <div class="password-wrapper">
+                <input type="password" id="mqttUser" placeholder="Nhập username" class="no-copy" autocomplete="off">
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('mqttUser', this)">👁️</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>🔑 Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="mqttPass" placeholder="Nhập password" class="no-copy" autocomplete="off">
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('mqttPass', this)">👁️</button>
+            </div>
+        </div>
+        <button class="btn-primary" onclick="connectMQTTFromConfig()">✅ Kết nối MQTT</button>
+        <div id="mqttConfigMessage"></div>
+    </div>
+</div>
 
-            <div id="connectionStatus" class="status-connection disconnected">🔌 Đang kết nối MQTT...</div>
+<!-- Màn hình xác thực -->
+<div id="authScreen" class="overlay-screen hidden">
+    <div class="screen-card">
+        <div class="drag-handle"></div>
+        <div style="text-align:center; margin-bottom:20px">
+            <span style="font-size:56px">🔐</span>
+            <h2 style="color:#B45F1B; margin-top: 8px;">Xác thực thiết bị</h2>
+            <p style="color:#AA6F3C; font-size:13px">Nhập mật khẩu để điều khiển</p>
+        </div>
+        <div id="mqttStatusScreen" class="warning-msg" style="margin-bottom:16px">📡 Đang kết nối MQTT...</div>
+        <div class="form-group">
+            <label>🔑 Mật khẩu xác thực</label>
+            <div class="password-wrapper">
+                <input type="password" id="authPassword" placeholder="Nhập mật khẩu" onkeypress="if(event.key==='Enter') sendAuthentication()" class="no-copy">
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('authPassword', this)">👁️</button>
+            </div>
+        </div>
+        <button class="btn-primary" onclick="sendAuthentication()">✅ Xác thực</button>
+        <div class="divider-custom">
+            <hr>
+            <span>HOẶC</span>
+        </div>
+        <button class="btn-secondary" onclick="goToMQTTConfig()">⚙️ Cấu hình lại MQTT</button>
+        <div id="authMessage"></div>
+    </div>
+</div>
 
-            <!-- Cảm biến -->
-            <div class="sensor-container">
-                <div class="sensor-title">🌡️ Cảm biến môi trường</div>
-                <div class="sensor-grid">
-                    <div class="sensor-card" id="tempCard">
-                        <div class="sensor-icon">🌡️</div>
-                        <div class="sensor-label">Nhiệt độ</div>
-                        <div class="sensor-value">
-                            <span id="temperature">--</span>
-                            <span class="sensor-unit">°C</span>
-                        </div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-icon">💧</div>
-                        <div class="sensor-label">Độ ẩm</div>
-                        <div class="sensor-value">
-                            <span id="humidity">--</span>
-                            <span class="sensor-unit">%</span>
-                        </div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-icon">🌧️</div>
-                        <div class="sensor-label">Lượng mưa</div>
-                        <div class="sensor-value">
-                            <span id="rainIntensity">--</span>
-                            <span class="sensor-unit">%</span>
-                        </div>
-                        <div class="rain-status" id="rainStatus">--</div>
+<!-- Giao diện chính -->
+<div id="mainApp" class="hidden">
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Smart Home <span style="font-size:0.9rem">🌻</span></h1>
+            <div class="subtitle">⚡ Giám sát & Điều khiển từ ESP32</div>
+            <button class="logout-btn" onclick="logout()">🚪 Đăng xuất</button>
+        </div>
+
+        <div id="connectionStatus" class="status-connection disconnected">🔌 Đang kết nối MQTT...</div>
+        <div id="authStatus" class="auth-status failed hidden"></div>
+
+        <div class="sensor-container">
+            <div class="sensor-title">🌡️ Cảm biến môi trường</div>
+            <div class="sensor-grid">
+                <div class="sensor-card" id="tempCard">
+                    <div class="sensor-icon">🌡️</div>
+                    <div class="sensor-label">Nhiệt độ</div>
+                    <div class="sensor-value">
+                        <span id="temperature">--</span>
+                        <span class="sensor-unit">°C</span>
                     </div>
                 </div>
-                <div class="update-time" id="updateTime">📡 Chưa có dữ liệu từ ESP32</div>
-            </div>
-
-            <!-- Điều khiển đèn -->
-            <div class="lights-container">
-                <div class="light-card">
-                    <button class="edit-name-btn" onclick="promptRename('den1')">✏️</button>
-                    <div class="device-icon" id="den1Icon">💡</div>
-                    <div class="device-title" id="den1Title">ĐÈN 1</div>
-                    <div class="device-status off" id="den1Status">● TẮT</div>
-                    <div class="btn-group">
-                        <button class="btn-on" onclick="controlDevice('den1', 'ON')">BẬT</button>
-                        <button class="btn-off" onclick="controlDevice('den1', 'OFF')">TẮT</button>
+                <div class="sensor-card">
+                    <div class="sensor-icon">💧</div>
+                    <div class="sensor-label">Độ ẩm</div>
+                    <div class="sensor-value">
+                        <span id="humidity">--</span>
+                        <span class="sensor-unit">%</span>
                     </div>
                 </div>
-
-                <div class="light-card">
-                    <button class="edit-name-btn" onclick="promptRename('den2')">✏️</button>
-                    <div class="device-icon" id="den2Icon">💡</div>
-                    <div class="device-title" id="den2Title">ĐÈN 2</div>
-                    <div class="device-status off" id="den2Status">● TẮT</div>
-                    <div class="btn-group">
-                        <button class="btn-on" onclick="controlDevice('den2', 'ON')">BẬT</button>
-                        <button class="btn-off" onclick="controlDevice('den2', 'OFF')">TẮT</button>
+                <div class="sensor-card">
+                    <div class="sensor-icon">🌧️</div>
+                    <div class="sensor-label">Lượng mưa</div>
+                    <div class="sensor-value">
+                        <span id="rainIntensity">--</span>
+                        <span class="sensor-unit">%</span>
                     </div>
+                    <div class="rain-status" id="rainStatus">--</div>
                 </div>
             </div>
+            <div class="update-time" id="updateTime">📡 Chưa có dữ liệu từ ESP32</div>
+        </div>
 
-            <!-- Điều khiển quạt -->
-            <div class="fan-full-container">
-                <div class="fan-icon" id="quatIcon">🌀</div>
-                <div class="fan-title">QUẠT THÔNG MINH</div>
-                <div class="fan-status off" id="quatStatus">● TẮT</div>
-                <div class="fan-info-note">
-                    🤖 Tự động bật khi nhiệt độ > 35°C
+        <div class="lights-container">
+            <div class="light-card">
+                <button class="edit-name-btn" onclick="promptRename('den1')">✏️</button>
+                <div class="device-icon" id="den1Icon">💡</div>
+                <div class="device-title" id="den1Title">ĐÈN 1</div>
+                <div class="device-status off" id="den1Status">● TẮT</div>
+                <div class="btn-group">
+                    <button class="btn-on" onclick="controlDevice('den1', 'ON')">BẬT</button>
+                    <button class="btn-off" onclick="controlDevice('den1', 'OFF')">TẮT</button>
+                </div>
+            </div>
+            <div class="light-card">
+                <button class="edit-name-btn" onclick="promptRename('den2')">✏️</button>
+                <div class="device-icon" id="den2Icon">💡</div>
+                <div class="device-title" id="den2Title">ĐÈN 2</div>
+                <div class="device-status off" id="den2Status">● TẮT</div>
+                <div class="btn-group">
+                    <button class="btn-on" onclick="controlDevice('den2', 'ON')">BẬT</button>
+                    <button class="btn-off" onclick="controlDevice('den2', 'OFF')">TẮT</button>
                 </div>
             </div>
         </div>
+
+        <div class="fan-full-container">
+            <div class="fan-icon" id="quatIcon">🌀</div>
+            <div class="fan-title">QUẠT THÔNG MINH</div>
+            <div class="fan-status off" id="quatStatus">● TẮT</div>
+            <div style="margin-top:12px; font-size:12px; color:#BF7B3C">🤖 Tự động bật khi nhiệt độ > 35°C</div>
+        </div>
     </div>
+</div>
 
-    <div id="toast" class="toast"></div>
+<div id="toast" class="toast"></div>
 
-    <script>
-        // ==================== CẤU HÌNH MQTT MẶC ĐỊNH ====================
-        // Thay đổi thông tin này theo broker MQTT của bạn
-        const DEFAULT_MQTT_CONFIG = {
-            broker: "wss://broker.emqx.io:8084/mqtt",  // Thay bằng broker của bạn
-            username: "",  // Thay username nếu cần
-            password: ""   // Thay password nếu cần
-        };
-        
-        const TEMP_THRESHOLD = 35;
-        
-        // Topics khớp với ESP32
-        const topics = {
-            den1: "home/esp32/den1/set",
-            den2: "home/esp32/den2/set",
-            quat: "home/esp32/quat/set",
-            den1Status: "home/esp32/den1/status",
-            den2Status: "home/esp32/den2/status",
-            quatStatus: "home/esp32/quat/status",
-            temperature: "home/esp32/sensor/temperature",
-            humidity: "home/esp32/sensor/humidity",
-            rainStatus: "home/esp32/sensor/rain_status",
-            rainValue: "home/esp32/sensor/rain_value",
-            statusRequest: "home/esp32/status/request"
-        };
-        
-        let mqttClient = null;
-        let isConnected = false;
-        
-        // Store current states for sync
-        let currentStates = {
-            den1: false,
-            den2: false,
-            quat: false,
-            temp: null,
-            humidity: null,
-            rainStatus: "",
-            rainValue: null
-        };
-        
-        // ==================== LƯU TRỮ ====================
-        function loadMqttConfig() {
-            try {
-                return {
-                    broker: localStorage.getItem('mqtt_broker') ? atob(localStorage.getItem('mqtt_broker')) : DEFAULT_MQTT_CONFIG.broker,
-                    user: localStorage.getItem('mqtt_user') ? atob(localStorage.getItem('mqtt_user')) : DEFAULT_MQTT_CONFIG.username,
-                    pass: localStorage.getItem('mqtt_pass') ? atob(localStorage.getItem('mqtt_pass')) : DEFAULT_MQTT_CONFIG.password
-                };
-            } catch(e) {
-                return DEFAULT_MQTT_CONFIG;
-            }
-        }
-        
-        // ==================== UI HELPERS ====================
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.background = isError ? '#F44336' : '#4CAF50';
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-        
-        function updateConnectionStatus(status, message) {
-            const el = document.getElementById('connectionStatus');
-            if (el) {
-                el.className = `status-connection ${status}`;
-                el.innerHTML = message;
-            }
-        }
-        
-        function updateTimeDisplay() {
-            const el = document.getElementById('updateTime');
-            if (el) {
-                el.innerHTML = `🕒 Cập nhật lúc: ${new Date().toLocaleTimeString('vi-VN')}`;
-            }
-        }
-        
-        // ==================== YÊU CẦU CẬP NHẬT TRẠNG THÁI TỪ ESP32 ====================
-        function requestStatusUpdate() {
-            if (isConnected && mqttClient) {
-                console.log("📤 Yêu cầu cập nhật trạng thái từ ESP32...");
-                mqttClient.publish(topics.statusRequest, "REQUEST", { qos: 1 });
-                setTimeout(() => {
-                    if (isConnected && mqttClient) {
-                        mqttClient.publish(topics.den1Status + "/get", "REQUEST", { qos: 0 });
-                        mqttClient.publish(topics.den2Status + "/get", "REQUEST", { qos: 0 });
-                        mqttClient.publish(topics.quatStatus + "/get", "REQUEST", { qos: 0 });
-                    }
-                }, 100);
-            }
-        }
-        
-        // ==================== XỬ LÝ DỮ LIỆU TỪ ESP32 ====================
-        function updateTemperature(value) {
-            const temp = parseFloat(value);
-            if (isNaN(temp)) return;
-            
-            currentStates.temp = temp;
-            document.getElementById('temperature').textContent = temp.toFixed(1);
-            const tempCard = document.getElementById('tempCard');
-            
-            if (temp > TEMP_THRESHOLD) {
-                tempCard.classList.add('temp-alert');
-            } else {
-                tempCard.classList.remove('temp-alert');
-            }
-            
-            updateTimeDisplay();
-        }
-        
-        function updateHumidity(value) {
-            const hum = parseFloat(value);
-            if (!isNaN(hum)) {
-                currentStates.humidity = hum;
-                document.getElementById('humidity').textContent = hum.toFixed(1);
-            }
-            updateTimeDisplay();
-        }
-        
-        function updateRainIntensity(value) {
-            currentStates.rainValue = value;
-            document.getElementById('rainIntensity').textContent = value;
-            updateTimeDisplay();
-        }
-        
-        function updateRainStatus(value) {
-            const status = value.toString().toUpperCase();
-            currentStates.rainStatus = status;
-            let text = '☀️ Không mưa', cls = 'no-rain';
-            
-            if (status.includes('HEAVY')) { text = '🌧️ Mưa to'; cls = 'heavy-rain'; }
-            else if (status.includes('LIGHT')) { text = '🌦️ Mưa nhỏ'; cls = 'light-rain'; }
-            else if (status.includes('DRIZZLE')) { text = '💧 Mưa phùn'; cls = 'drizzle'; }
-            
-            const el = document.getElementById('rainStatus');
-            if (el) {
-                el.textContent = text;
-                el.className = `rain-status ${cls}`;
-            }
-            updateTimeDisplay();
-        }
-        
-        function updateDeviceUI(device, state) {
-            const isOn = state.toUpperCase() === 'ON';
-            currentStates[device] = isOn;
-            
-            const statusEl = document.getElementById(`${device}Status`);
-            const iconEl = document.getElementById(`${device}Icon`);
-            
-            if (statusEl) {
-                statusEl.textContent = isOn ? '● BẬT' : '● TẮT';
-                statusEl.className = `device-status ${isOn ? 'on' : 'off'}`;
-            }
-            if (iconEl) {
-                if (isOn) iconEl.classList.add(`${device}-on`);
-                else iconEl.classList.remove(`${device}-on`);
-            }
-            updateTimeDisplay();
-            console.log(`🔄 Cập nhật UI: ${device} = ${state}`);
-        }
-        
-        function updateFanUI(state) {
-            const isOn = state.toUpperCase() === 'ON';
-            currentStates.quat = isOn;
-            
-            const statusEl = document.getElementById('quatStatus');
-            const iconEl = document.getElementById('quatIcon');
-            
-            if (statusEl) {
-                statusEl.textContent = isOn ? '● ĐANG BẬT' : '● ĐANG TẮT';
-                statusEl.className = `fan-status ${isOn ? 'on' : 'off'}`;
-            }
-            if (iconEl) {
-                if (isOn) iconEl.classList.add('quat-on');
-                else iconEl.classList.remove('quat-on');
-            }
-            updateTimeDisplay();
-            console.log(`🔄 Cập nhật UI: Quạt = ${state}`);
-        }
-        
-        // ==================== ĐIỀU KHIỂN ====================
-        function controlDevice(device, state) {
-            if (!isConnected || !mqttClient) {
-                showToast('❌ Chưa kết nối MQTT!', true);
-                return;
-            }
-            
-            let topic = device === 'den1' ? topics.den1 : (device === 'den2' ? topics.den2 : topics.quat);
-            let deviceName = device === 'den1' ? 'Đèn 1' : (device === 'den2' ? 'Đèn 2' : 'Quạt');
-            
-            const btns = document.querySelectorAll(`[onclick*="controlDevice('${device}')"]`);
-            btns.forEach(btn => btn.classList.add('btn-loading'));
-            
-            mqttClient.publish(topic, state, { qos: 1 }, (err) => {
-                btns.forEach(btn => btn.classList.remove('btn-loading'));
-                if (err) {
-                    showToast(`⚠️ Không thể điều khiển ${deviceName}`, true);
-                } else {
-                    showToast(`✅ Đã gửi lệnh ${state} cho ${deviceName}`);
-                    if (device === 'den1' || device === 'den2') {
-                        updateDeviceUI(device, state);
-                    } else {
-                        updateFanUI(state);
-                    }
-                }
+<script>
+    // ====== TỰ ĐỘNG CUỘN KHI FOCUS (XỬ LÝ BÀN PHÍM CHE) ======
+    function setupAutoScroll() {
+        const overlays = document.querySelectorAll('.overlay-screen');
+
+        overlays.forEach(overlay => {
+            const inputs = overlay.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    setTimeout(() => {
+                        const inputRect = this.getBoundingClientRect();
+                        const overlayRect = overlay.getBoundingClientRect();
+                        const scrollNeeded = overlay.scrollTop + inputRect.top - overlayRect.top - 80;
+
+                        if (scrollNeeded > overlay.scrollTop) {
+                            overlay.scrollTo({
+                                top: scrollNeeded,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 300);
+                });
             });
+        });
+    }
+
+    // ====== CẤM COPY NHƯNG CHO PHÉP DÁN ======
+    document.addEventListener('copy', e => { e.preventDefault(); showToast('📋 Sao chép bị vô hiệu hóa!', true); });
+    document.addEventListener('cut', e => { e.preventDefault(); showToast('✂️ Cắt bị vô hiệu hóa!', true); });
+    document.addEventListener('dragstart', e => e.preventDefault());
+    document.addEventListener('drop', e => e.preventDefault());
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // ====== HIỆN/ẨN MẬT KHẨU ======
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁️';
         }
-        
-        // ==================== MQTT KẾT NỐI ====================
-        function connectMQTT() {
-            const config = loadMqttConfig();
-            if (!config.broker) {
-                console.error('No MQTT config');
-                return false;
-            }
-            
-            const options = {
-                username: config.user,
-                password: config.pass,
-                clean: true,
-                reconnectPeriod: 5000,
-                connectTimeout: 30000,
-                keepalive: 60,
-                clientId: "web_" + Math.random().toString(16).substring(2, 10)
+    }
+
+    // ====== CẤU HÌNH ======
+    const TEMP_THRESHOLD = 35;
+    const topics = {
+        den1: "home/esp32/den1/set",
+        den2: "home/esp32/den2/set",
+        quat: "home/esp32/quat/set",
+        den1Status: "home/esp32/den1/status",
+        den2Status: "home/esp32/den2/status",
+        quatStatus: "home/esp32/quat/status",
+        temperature: "home/esp32/sensor/temperature",
+        humidity: "home/esp32/sensor/humidity",
+        rainStatus: "home/esp32/sensor/rain_status",
+        rainValue: "home/esp32/sensor/rain_value",
+        authRequest: "home/esp32/auth/request",
+        authResponse: "home/esp32/auth/response",
+        statusRequest: "home/esp32/status/request"
+    };
+
+    let mqttClient = null;
+    let isConnected = false;
+    let isAuthenticated = false;
+    let pendingAuthTimeout = null;
+    let currentStates = { den1: false, den2: false, quat: false, temp: null, humidity: null, rainStatus: "", rainValue: null };
+
+    // ====== LƯU TRỮ ======
+    function saveMqttConfig() {
+        const broker = document.getElementById('brokerUrl').value.trim();
+        const user = document.getElementById('mqttUser').value.trim();
+        const pass = document.getElementById('mqttPass').value.trim();
+        if (broker) localStorage.setItem('mqtt_broker', btoa(broker));
+        if (user) localStorage.setItem('mqtt_user', btoa(user));
+        if (pass) localStorage.setItem('mqtt_pass', btoa(pass));
+    }
+
+    function loadMqttConfig() {
+        try {
+            return {
+                broker: localStorage.getItem('mqtt_broker') ? atob(localStorage.getItem('mqtt_broker')) : "",
+                user: localStorage.getItem('mqtt_user') ? atob(localStorage.getItem('mqtt_user')) : "",
+                pass: localStorage.getItem('mqtt_pass') ? atob(localStorage.getItem('mqtt_pass')) : ""
             };
-            
-            if (mqttClient) {
-                try { mqttClient.end(true); } catch(e) {}
-            }
-            
-            mqttClient = mqtt.connect(config.broker, options);
-            
-            mqttClient.on('connect', () => {
-                console.log('✅ MQTT connected');
-                isConnected = true;
-                updateConnectionStatus('connected', '✅ Đã kết nối MQTT Broker');
-                
-                const subs = Object.values(topics);
-                mqttClient.subscribe(subs, { qos: 1 });
-                console.log('📡 Đã subscribe các topics:', subs);
-                
-                // Yêu cầu cập nhật trạng thái sau khi kết nối
-                setTimeout(() => requestStatusUpdate(), 500);
-            });
-            
-            mqttClient.on('message', (topic, message) => {
-                const msg = message.toString();
-                console.log(`📨 ${topic}: ${msg}`);
-                
-                switch(topic) {
-                    case topics.temperature: updateTemperature(msg); break;
-                    case topics.humidity: updateHumidity(msg); break;
-                    case topics.rainValue: updateRainIntensity(msg); break;
-                    case topics.rainStatus: updateRainStatus(msg); break;
-                    case topics.den1Status: updateDeviceUI('den1', msg); break;
-                    case topics.den2Status: updateDeviceUI('den2', msg); break;
-                    case topics.quatStatus: updateFanUI(msg); break;
+        } catch(e) { return { broker: "", user: "", pass: "" }; }
+    }
+
+    function saveAuthState(authenticated) {
+        if (authenticated) localStorage.setItem('auth_state', btoa('true_' + Date.now()));
+        else localStorage.removeItem('auth_state');
+        isAuthenticated = authenticated;
+    }
+
+    function checkAuthState() {
+        try {
+            const authData = localStorage.getItem('auth_state');
+            if (authData) {
+                const decoded = atob(authData);
+                if (decoded.startsWith('true_')) {
+                    const timestamp = parseInt(decoded.split('_')[1]);
+                    if (Date.now() - timestamp < 300000) return true;
+                    else localStorage.removeItem('auth_state');
                 }
-            });
-            
-            mqttClient.on('error', (err) => {
-                console.error('MQTT error:', err);
-                isConnected = false;
-                updateConnectionStatus('disconnected', '❌ Lỗi kết nối MQTT');
-            });
-            
-            mqttClient.on('close', () => {
-                isConnected = false;
-                updateConnectionStatus('disconnected', '🔌 Mất kết nối MQTT');
-            });
-            
-            return true;
-        }
-        
-        // ==================== ĐỔI TÊN ĐÈN ====================
-        window.promptRename = function(device) {
-            const currentName = document.getElementById(`${device}Title`).innerText;
-            const newName = prompt(`Nhập tên mới cho ${currentName}:`, currentName);
-            if (newName && newName.trim()) {
-                localStorage.setItem(`${device}_name`, newName.trim());
-                document.getElementById(`${device}Title`).innerText = newName.trim();
-                showToast(`✅ Đã đổi tên thành: ${newName.trim()}`);
             }
-        };
-        
-        // ==================== KHỞI TẠO ====================
-        function init() {
-            // Load tên đèn đã lưu
-            const den1Name = localStorage.getItem('den1_name');
-            const den2Name = localStorage.getItem('den2_name');
-            if (den1Name) document.getElementById('den1Title').innerText = den1Name;
-            if (den2Name) document.getElementById('den2Title').innerText = den2Name;
-            
-            // Kết nối MQTT
-            connectMQTT();
+        } catch(e) {}
+        return false;
+    }
+
+    // ====== UI HELPERS ======
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.background = isError ? '#F44336' : '#4CAF50';
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function updateConnectionStatus(status, message) {
+        const el = document.getElementById('connectionStatus');
+        if (el) { el.className = `status-connection ${status}`; el.innerHTML = message; }
+    }
+
+    function updateTimeDisplay() {
+        const el = document.getElementById('updateTime');
+        if (el) el.innerHTML = `🕒 Cập nhật lúc: ${new Date().toLocaleTimeString('vi-VN')}`;
+    }
+
+    function requestStatusUpdate() {
+        if (isConnected && mqttClient && isAuthenticated) {
+            mqttClient.publish(topics.statusRequest, "REQUEST", { qos: 1 });
+            setTimeout(() => {
+                if (isConnected && mqttClient) {
+                    mqttClient.publish(topics.den1Status + "/get", "REQUEST", { qos: 0 });
+                    mqttClient.publish(topics.den2Status + "/get", "REQUEST", { qos: 0 });
+                    mqttClient.publish(topics.quatStatus + "/get", "REQUEST", { qos: 0 });
+                }
+            }, 100);
         }
-        
-        init();
-    </script>
+    }
+
+    // ====== XỬ LÝ DỮ LIỆU ======
+    function updateTemperature(value) {
+        const temp = parseFloat(value);
+        if (isNaN(temp)) return;
+        currentStates.temp = temp;
+        document.getElementById('temperature').textContent = temp.toFixed(1);
+        const tempCard = document.getElementById('tempCard');
+        if (temp > TEMP_THRESHOLD) tempCard.classList.add('temp-alert');
+        else tempCard.classList.remove('temp-alert');
+        updateTimeDisplay();
+    }
+
+    function updateHumidity(value) {
+        const hum = parseFloat(value);
+        if (!isNaN(hum)) {
+            currentStates.humidity = hum;
+            document.getElementById('humidity').textContent = hum.toFixed(1);
+        }
+        updateTimeDisplay();
+    }
+
+    function updateRainIntensity(value) {
+        currentStates.rainValue = value;
+        document.getElementById('rainIntensity').textContent = value;
+        updateTimeDisplay();
+    }
+
+    function updateRainStatus(value) {
+        const status = value.toString().toUpperCase();
+        currentStates.rainStatus = status;
+        let text = '☀️ Không mưa', cls = 'no-rain';
+        if (status.includes('HEAVY')) { text = '🌧️ Mưa to'; cls = 'heavy-rain'; }
+        else if (status.includes('LIGHT')) { text = '🌦️ Mưa nhỏ'; cls = 'light-rain'; }
+        else if (status.includes('DRIZZLE')) { text = '💧 Mưa phùn'; cls = 'drizzle'; }
+        const el = document.getElementById('rainStatus');
+        if (el) { el.textContent = text; el.className = `rain-status ${cls}`; }
+        updateTimeDisplay();
+    }
+
+    function updateDeviceUI(device, state) {
+        const isOn = state.toUpperCase() === 'ON';
+        currentStates[device] = isOn;
+        const statusEl = document.getElementById(`${device}Status`);
+        const iconEl = document.getElementById(`${device}Icon`);
+        if (statusEl) {
+            statusEl.textContent = isOn ? '● BẬT' : '● TẮT';
+            statusEl.className = `device-status ${isOn ? 'on' : 'off'}`;
+        }
+        if (iconEl) {
+            if (isOn) iconEl.classList.add(`${device}-on`);
+            else iconEl.classList.remove(`${device}-on`);
+        }
+        updateTimeDisplay();
+    }
+
+    function updateFanUI(state) {
+        const isOn = state.toUpperCase() === 'ON';
+        currentStates.quat = isOn;
+        const statusEl = document.getElementById('quatStatus');
+        const iconEl = document.getElementById('quatIcon');
+        if (statusEl) {
+            statusEl.textContent = isOn ? '● ĐANG BẬT' : '● ĐANG TẮT';
+            statusEl.className = `fan-status ${isOn ? 'on' : 'off'}`;
+        }
+        if (iconEl) {
+            if (isOn) iconEl.classList.add('quat-on');
+            else iconEl.classList.remove('quat-on');
+        }
+        updateTimeDisplay();
+    }
+
+    // ====== ĐIỀU KHIỂN ======
+    function controlDevice(device, state) {
+        if (!isAuthenticated) { showToast('❌ Chưa xác thực!', true); return; }
+        if (!isConnected || !mqttClient) { showToast('❌ Chưa kết nối MQTT!', true); return; }
+        const topic = device === 'den1' ? topics.den1 : (device === 'den2' ? topics.den2 : topics.quat);
+        const deviceName = device === 'den1' ? 'Đèn 1' : (device === 'den2' ? 'Đèn 2' : 'Quạt');
+        mqttClient.publish(topic, state, { qos: 1 }, (err) => {
+            if (err) showToast(`⚠️ Không thể điều khiển ${deviceName}`, true);
+            else {
+                showToast(`✅ Đã gửi lệnh ${state} cho ${deviceName}`);
+                if (device === 'den1' || device === 'den2') updateDeviceUI(device, state);
+                else updateFanUI(state);
+            }
+        });
+    }
+
+    // ====== XÁC THỰC ======
+    function sendAuthentication() {
+        const password = document.getElementById('authPassword').value.trim();
+        const messageDiv = document.getElementById('authMessage');
+        if (!password) { messageDiv.innerHTML = '<div class="error-msg">⚠️ Vui lòng nhập mật khẩu!</div>'; return; }
+        if (!isConnected || !mqttClient) { messageDiv.innerHTML = '<div class="error-msg">❌ Chưa kết nối MQTT!</div>'; return; }
+        messageDiv.innerHTML = '<div class="success-msg">🔄 Đang gửi yêu cầu xác thực...</div>';
+        mqttClient.publish(topics.authRequest, JSON.stringify({ password: password }), { qos: 1 });
+        if (pendingAuthTimeout) clearTimeout(pendingAuthTimeout);
+        pendingAuthTimeout = setTimeout(() => {
+            if (!isAuthenticated) messageDiv.innerHTML = '<div class="error-msg">⏰ Hết thời gian chờ, vui lòng thử lại!</div>';
+            pendingAuthTimeout = null;
+        }, 5000);
+    }
+
+    function handleAuthResponse(response) {
+        try {
+            const data = JSON.parse(response);
+            const messageDiv = document.getElementById('authMessage');
+            if (data.status === 'success') {
+                isAuthenticated = true;
+                saveAuthState(true);
+                if (pendingAuthTimeout) { clearTimeout(pendingAuthTimeout); pendingAuthTimeout = null; }
+                messageDiv.innerHTML = `<div class="success-msg">✅ ${data.message}</div>`;
+                showToast('✅ Xác thực thành công!');
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                const den1Name = localStorage.getItem('den1_name');
+                const den2Name = localStorage.getItem('den2_name');
+                if (den1Name) document.getElementById('den1Title').innerText = den1Name;
+                if (den2Name) document.getElementById('den2Title').innerText = den2Name;
+                setTimeout(() => requestStatusUpdate(), 500);
+            } else {
+                isAuthenticated = false;
+                messageDiv.innerHTML = `<div class="error-msg">❌ ${data.message || 'Xác thực thất bại!'}</div>`;
+                document.getElementById('authPassword').value = '';
+            }
+        } catch(e) { console.error('Parse error:', e); }
+    }
+
+    // ====== MQTT KẾT NỐI ======
+    function connectMQTT() {
+        const config = loadMqttConfig();
+        if (!config.broker) return false;
+        const options = {
+            username: config.user,
+            password: config.pass,
+            clean: true,
+            reconnectPeriod: 5000,
+            connectTimeout: 30000,
+            keepalive: 60,
+            clientId: "web_" + Math.random().toString(16).substring(2, 10)
+        };
+        if (mqttClient) { try { mqttClient.end(true); } catch(e) {} }
+        mqttClient = mqtt.connect(config.broker, options);
+        mqttClient.on('connect', () => {
+            isConnected = true;
+            updateConnectionStatus('connected', '✅ Đã kết nối MQTT Broker');
+            mqttClient.subscribe(Object.values(topics), { qos: 1 });
+            if (!document.getElementById('authScreen').classList.contains('hidden')) {
+                document.getElementById('mqttStatusScreen').innerHTML = '✅ Đã kết nối MQTT! Vui lòng nhập mật khẩu.';
+                document.getElementById('mqttStatusScreen').className = 'success-msg';
+            }
+            if (isAuthenticated) setTimeout(() => requestStatusUpdate(), 500);
+        });
+        mqttClient.on('message', (topic, message) => {
+            const msg = message.toString();
+            switch(topic) {
+                case topics.temperature: updateTemperature(msg); break;
+                case topics.humidity: updateHumidity(msg); break;
+                case topics.rainValue: updateRainIntensity(msg); break;
+                case topics.rainStatus: updateRainStatus(msg); break;
+                case topics.den1Status: updateDeviceUI('den1', msg); break;
+                case topics.den2Status: updateDeviceUI('den2', msg); break;
+                case topics.quatStatus: updateFanUI(msg); break;
+                case topics.authResponse: handleAuthResponse(msg); break;
+            }
+        });
+        mqttClient.on('error', () => { isConnected = false; updateConnectionStatus('disconnected', '❌ Lỗi kết nối MQTT'); });
+        mqttClient.on('close', () => { isConnected = false; updateConnectionStatus('disconnected', '🔌 Mất kết nối MQTT'); });
+        return true;
+    }
+
+    function connectMQTTFromConfig() {
+        const broker = document.getElementById('brokerUrl').value.trim();
+        if (!broker) { document.getElementById('mqttConfigMessage').innerHTML = '<div class="error-msg">⚠️ Vui lòng nhập Broker URL!</div>'; return; }
+        saveMqttConfig();
+        if (connectMQTT()) {
+            document.getElementById('mqttConfigScreen').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('authScreen').scrollTop = 0;
+            document.getElementById('mqttStatusScreen').innerHTML = '🔄 Đang kết nối MQTT...';
+            document.getElementById('mqttStatusScreen').className = 'warning-msg';
+        }
+    }
+
+    // ====== ĐỔI TÊN ĐÈN ======
+    window.promptRename = function(device) {
+        const currentName = document.getElementById(`${device}Title`).innerText;
+        const newName = prompt(`Nhập tên mới cho ${currentName}:`, currentName);
+        if (newName && newName.trim()) {
+            localStorage.setItem(`${device}_name`, newName.trim());
+            document.getElementById(`${device}Title`).innerText = newName.trim();
+            showToast(`✅ Đã đổi tên thành: ${newName.trim()}`);
+        }
+    };
+
+    // ====== ĐIỀU HƯỚNG ======
+    window.goToMQTTConfig = function() {
+        document.getElementById('authScreen').classList.add('hidden');
+        const mqttScreen = document.getElementById('mqttConfigScreen');
+        mqttScreen.classList.remove('hidden');
+        mqttScreen.scrollTop = 0;
+        document.getElementById('mqttConfigMessage').innerHTML = '';
+        ['brokerUrl', 'mqttUser', 'mqttPass'].forEach(id => {
+            const el = document.getElementById(id);
+            el.type = 'password';
+            el.value = '';
+        });
+        document.querySelectorAll('.toggle-password').forEach(btn => btn.textContent = '👁️');
+    };
+
+    window.logout = function() {
+        saveAuthState(false);
+        isAuthenticated = false;
+        updateDeviceUI('den1', 'OFF');
+        updateDeviceUI('den2', 'OFF');
+        updateFanUI('OFF');
+        document.getElementById('mainApp').classList.add('hidden');
+        const authScreen = document.getElementById('authScreen');
+        authScreen.classList.remove('hidden');
+        authScreen.scrollTop = 0;
+        document.getElementById('authPassword').value = '';
+        document.getElementById('authMessage').innerHTML = '';
+        if (isConnected) {
+            document.getElementById('mqttStatusScreen').innerHTML = '✅ Đã kết nối MQTT! Vui lòng nhập mật khẩu.';
+            document.getElementById('mqttStatusScreen').className = 'success-msg';
+        }
+    };
+
+    // ====== KHỞI TẠO ======
+    function init() {
+        const config = loadMqttConfig();
+        if (config.broker) {
+            connectMQTT();
+            if (checkAuthState()) {
+                isAuthenticated = true;
+                document.getElementById('mqttConfigScreen').classList.add('hidden');
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                const den1Name = localStorage.getItem('den1_name');
+                const den2Name = localStorage.getItem('den2_name');
+                if (den1Name) document.getElementById('den1Title').innerText = den1Name;
+                if (den2Name) document.getElementById('den2Title').innerText = den2Name;
+                setTimeout(() => requestStatusUpdate(), 1000);
+            } else {
+                document.getElementById('mqttConfigScreen').classList.add('hidden');
+                document.getElementById('authScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        } else {
+            document.getElementById('mqttConfigScreen').classList.remove('hidden');
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+        setupAutoScroll();
+    }
+
+    init();
+</script>
 </body>
 </html>
