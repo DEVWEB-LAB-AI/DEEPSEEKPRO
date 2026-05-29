@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Smart Home - Giám sát & Điều khiển ESP32</title>
+    <title>Smart Home - Điều khiển & Giám sát ESP32</title>
     <style>
         * {
             margin: 0;
@@ -33,6 +33,7 @@
             text-align: center;
             box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
             border: 1px solid rgba(255, 245, 190, 0.8);
+            position: relative;
         }
 
         h1 {
@@ -121,6 +122,23 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             border: 1px solid #FFE2A4;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sensor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .sensor-card.updating::before {
+            left: 100%;
         }
 
         .sensor-card.temp-alert {
@@ -388,6 +406,12 @@
             transform: translateX(-50%) translateY(0);
         }
 
+        .btn-loading {
+            opacity: 0.6;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 480px) {
             body { padding: 12px; }
             .lights-container { gap: 12px; }
@@ -398,79 +422,82 @@
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏠 Smart Home <span style="font-size:0.9rem">🌻</span></h1>
-            <div class="subtitle">⚡ Giám sát & Điều khiển từ ESP32</div>
-        </div>
-
-        <div id="connectionStatus" class="status-connection disconnected">🔌 Đang kết nối MQTT...</div>
-
-        <!-- Cảm biến -->
-        <div class="sensor-container">
-            <div class="sensor-title">🌡️ Cảm biến môi trường</div>
-            <div class="sensor-grid">
-                <div class="sensor-card" id="tempCard">
-                    <div class="sensor-icon">🌡️</div>
-                    <div class="sensor-label">Nhiệt độ</div>
-                    <div class="sensor-value">
-                        <span id="temperature">--</span>
-                        <span class="sensor-unit">°C</span>
-                    </div>
-                </div>
-                <div class="sensor-card">
-                    <div class="sensor-icon">💧</div>
-                    <div class="sensor-label">Độ ẩm</div>
-                    <div class="sensor-value">
-                        <span id="humidity">--</span>
-                        <span class="sensor-unit">%</span>
-                    </div>
-                </div>
-                <div class="sensor-card">
-                    <div class="sensor-icon">🌧️</div>
-                    <div class="sensor-label">Lượng mưa</div>
-                    <div class="sensor-value">
-                        <span id="rainIntensity">--</span>
-                        <span class="sensor-unit">%</span>
-                    </div>
-                    <div class="rain-status" id="rainStatus">--</div>
-                </div>
-            </div>
-            <div class="update-time" id="updateTime">📡 Đang chờ dữ liệu từ ESP32...</div>
-        </div>
-
-        <!-- Điều khiển đèn -->
-        <div class="lights-container">
-            <div class="light-card">
-                <button class="edit-name-btn" onclick="promptRename('den1')">✏️</button>
-                <div class="device-icon" id="den1Icon">💡</div>
-                <div class="device-title" id="den1Title">ĐÈN 1</div>
-                <div class="device-status off" id="den1Status">● TẮT</div>
-                <div class="btn-group">
-                    <button class="btn-on" onclick="controlDevice('den1', 'ON')">BẬT</button>
-                    <button class="btn-off" onclick="controlDevice('den1', 'OFF')">TẮT</button>
-                </div>
+    <!-- Giao diện chính -->
+    <div id="mainApp">
+        <div class="container">
+            <div class="header">
+                <h1>🏠 Smart Home <span style="font-size:0.9rem">🌻</span></h1>
+                <div class="subtitle">⚡ Giám sát & Điều khiển từ ESP32</div>
             </div>
 
-            <div class="light-card">
-                <button class="edit-name-btn" onclick="promptRename('den2')">✏️</button>
-                <div class="device-icon" id="den2Icon">💡</div>
-                <div class="device-title" id="den2Title">ĐÈN 2</div>
-                <div class="device-status off" id="den2Status">● TẮT</div>
-                <div class="btn-group">
-                    <button class="btn-on" onclick="controlDevice('den2', 'ON')">BẬT</button>
-                    <button class="btn-off" onclick="controlDevice('den2', 'OFF')">TẮT</button>
+            <div id="connectionStatus" class="status-connection disconnected">🔌 Đang kết nối MQTT...</div>
+
+            <!-- Cảm biến -->
+            <div class="sensor-container">
+                <div class="sensor-title">🌡️ Cảm biến môi trường</div>
+                <div class="sensor-grid">
+                    <div class="sensor-card" id="tempCard">
+                        <div class="sensor-icon">🌡️</div>
+                        <div class="sensor-label">Nhiệt độ</div>
+                        <div class="sensor-value">
+                            <span id="temperature">--</span>
+                            <span class="sensor-unit">°C</span>
+                        </div>
+                    </div>
+                    <div class="sensor-card">
+                        <div class="sensor-icon">💧</div>
+                        <div class="sensor-label">Độ ẩm</div>
+                        <div class="sensor-value">
+                            <span id="humidity">--</span>
+                            <span class="sensor-unit">%</span>
+                        </div>
+                    </div>
+                    <div class="sensor-card">
+                        <div class="sensor-icon">🌧️</div>
+                        <div class="sensor-label">Lượng mưa</div>
+                        <div class="sensor-value">
+                            <span id="rainIntensity">--</span>
+                            <span class="sensor-unit">%</span>
+                        </div>
+                        <div class="rain-status" id="rainStatus">--</div>
+                    </div>
+                </div>
+                <div class="update-time" id="updateTime">📡 Chưa có dữ liệu từ ESP32</div>
+            </div>
+
+            <!-- Điều khiển đèn -->
+            <div class="lights-container">
+                <div class="light-card">
+                    <button class="edit-name-btn" onclick="promptRename('den1')">✏️</button>
+                    <div class="device-icon" id="den1Icon">💡</div>
+                    <div class="device-title" id="den1Title">ĐÈN 1</div>
+                    <div class="device-status off" id="den1Status">● TẮT</div>
+                    <div class="btn-group">
+                        <button class="btn-on" onclick="controlDevice('den1', 'ON')">BẬT</button>
+                        <button class="btn-off" onclick="controlDevice('den1', 'OFF')">TẮT</button>
+                    </div>
+                </div>
+
+                <div class="light-card">
+                    <button class="edit-name-btn" onclick="promptRename('den2')">✏️</button>
+                    <div class="device-icon" id="den2Icon">💡</div>
+                    <div class="device-title" id="den2Title">ĐÈN 2</div>
+                    <div class="device-status off" id="den2Status">● TẮT</div>
+                    <div class="btn-group">
+                        <button class="btn-on" onclick="controlDevice('den2', 'ON')">BẬT</button>
+                        <button class="btn-off" onclick="controlDevice('den2', 'OFF')">TẮT</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Điều khiển quạt -->
-        <div class="fan-full-container">
-            <div class="fan-icon" id="quatIcon">🌀</div>
-            <div class="fan-title">QUẠT THÔNG MINH</div>
-            <div class="fan-status off" id="quatStatus">● TẮT</div>
-            <div class="fan-info-note">
-                🤖 Tự động bật khi nhiệt độ > 35°C
+            <!-- Điều khiển quạt -->
+            <div class="fan-full-container">
+                <div class="fan-icon" id="quatIcon">🌀</div>
+                <div class="fan-title">QUẠT THÔNG MINH</div>
+                <div class="fan-status off" id="quatStatus">● TẮT</div>
+                <div class="fan-info-note">
+                    🤖 Tự động bật khi nhiệt độ > 35°C
+                </div>
             </div>
         </div>
     </div>
@@ -478,11 +505,12 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        // ==================== THÔNG TIN MQTT CỐ ĐỊNH ====================
-        const MQTT_CONFIG = {
-            broker: "wss://592ddd3240fc42adaf260762fa6952a1.s1.eu.hivemq.cloud:8884/mqtt",
-            username: "camtest",
-            password: "Camtest@123"
+        // ==================== CẤU HÌNH MQTT MẶC ĐỊNH ====================
+        // Thay đổi thông tin này theo broker MQTT của bạn
+        const DEFAULT_MQTT_CONFIG = {
+            broker: "wss://broker.emqx.io:8084/mqtt",  // Thay bằng broker của bạn
+            username: "",  // Thay username nếu cần
+            password: ""   // Thay password nếu cần
         };
         
         const TEMP_THRESHOLD = 35;
@@ -498,11 +526,36 @@
             temperature: "home/esp32/sensor/temperature",
             humidity: "home/esp32/sensor/humidity",
             rainStatus: "home/esp32/sensor/rain_status",
-            rainValue: "home/esp32/sensor/rain_value"
+            rainValue: "home/esp32/sensor/rain_value",
+            statusRequest: "home/esp32/status/request"
         };
         
         let mqttClient = null;
         let isConnected = false;
+        
+        // Store current states for sync
+        let currentStates = {
+            den1: false,
+            den2: false,
+            quat: false,
+            temp: null,
+            humidity: null,
+            rainStatus: "",
+            rainValue: null
+        };
+        
+        // ==================== LƯU TRỮ ====================
+        function loadMqttConfig() {
+            try {
+                return {
+                    broker: localStorage.getItem('mqtt_broker') ? atob(localStorage.getItem('mqtt_broker')) : DEFAULT_MQTT_CONFIG.broker,
+                    user: localStorage.getItem('mqtt_user') ? atob(localStorage.getItem('mqtt_user')) : DEFAULT_MQTT_CONFIG.username,
+                    pass: localStorage.getItem('mqtt_pass') ? atob(localStorage.getItem('mqtt_pass')) : DEFAULT_MQTT_CONFIG.password
+                };
+            } catch(e) {
+                return DEFAULT_MQTT_CONFIG;
+            }
+        }
         
         // ==================== UI HELPERS ====================
         function showToast(message, isError = false) {
@@ -528,11 +581,27 @@
             }
         }
         
+        // ==================== YÊU CẦU CẬP NHẬT TRẠNG THÁI TỪ ESP32 ====================
+        function requestStatusUpdate() {
+            if (isConnected && mqttClient) {
+                console.log("📤 Yêu cầu cập nhật trạng thái từ ESP32...");
+                mqttClient.publish(topics.statusRequest, "REQUEST", { qos: 1 });
+                setTimeout(() => {
+                    if (isConnected && mqttClient) {
+                        mqttClient.publish(topics.den1Status + "/get", "REQUEST", { qos: 0 });
+                        mqttClient.publish(topics.den2Status + "/get", "REQUEST", { qos: 0 });
+                        mqttClient.publish(topics.quatStatus + "/get", "REQUEST", { qos: 0 });
+                    }
+                }, 100);
+            }
+        }
+        
         // ==================== XỬ LÝ DỮ LIỆU TỪ ESP32 ====================
         function updateTemperature(value) {
             const temp = parseFloat(value);
             if (isNaN(temp)) return;
             
+            currentStates.temp = temp;
             document.getElementById('temperature').textContent = temp.toFixed(1);
             const tempCard = document.getElementById('tempCard');
             
@@ -548,18 +617,21 @@
         function updateHumidity(value) {
             const hum = parseFloat(value);
             if (!isNaN(hum)) {
+                currentStates.humidity = hum;
                 document.getElementById('humidity').textContent = hum.toFixed(1);
             }
             updateTimeDisplay();
         }
         
         function updateRainIntensity(value) {
+            currentStates.rainValue = value;
             document.getElementById('rainIntensity').textContent = value;
             updateTimeDisplay();
         }
         
         function updateRainStatus(value) {
             const status = value.toString().toUpperCase();
+            currentStates.rainStatus = status;
             let text = '☀️ Không mưa', cls = 'no-rain';
             
             if (status.includes('HEAVY')) { text = '🌧️ Mưa to'; cls = 'heavy-rain'; }
@@ -576,6 +648,8 @@
         
         function updateDeviceUI(device, state) {
             const isOn = state.toUpperCase() === 'ON';
+            currentStates[device] = isOn;
+            
             const statusEl = document.getElementById(`${device}Status`);
             const iconEl = document.getElementById(`${device}Icon`);
             
@@ -588,10 +662,13 @@
                 else iconEl.classList.remove(`${device}-on`);
             }
             updateTimeDisplay();
+            console.log(`🔄 Cập nhật UI: ${device} = ${state}`);
         }
         
         function updateFanUI(state) {
             const isOn = state.toUpperCase() === 'ON';
+            currentStates.quat = isOn;
+            
             const statusEl = document.getElementById('quatStatus');
             const iconEl = document.getElementById('quatIcon');
             
@@ -604,6 +681,7 @@
                 else iconEl.classList.remove('quat-on');
             }
             updateTimeDisplay();
+            console.log(`🔄 Cập nhật UI: Quạt = ${state}`);
         }
         
         // ==================== ĐIỀU KHIỂN ====================
@@ -616,57 +694,59 @@
             let topic = device === 'den1' ? topics.den1 : (device === 'den2' ? topics.den2 : topics.quat);
             let deviceName = device === 'den1' ? 'Đèn 1' : (device === 'den2' ? 'Đèn 2' : 'Quạt');
             
+            const btns = document.querySelectorAll(`[onclick*="controlDevice('${device}')"]`);
+            btns.forEach(btn => btn.classList.add('btn-loading'));
+            
             mqttClient.publish(topic, state, { qos: 1 }, (err) => {
-                if (err) showToast(`⚠️ Không thể điều khiển ${deviceName}`, true);
-                else showToast(`✅ Đã gửi lệnh ${state} cho ${deviceName}`);
+                btns.forEach(btn => btn.classList.remove('btn-loading'));
+                if (err) {
+                    showToast(`⚠️ Không thể điều khiển ${deviceName}`, true);
+                } else {
+                    showToast(`✅ Đã gửi lệnh ${state} cho ${deviceName}`);
+                    if (device === 'den1' || device === 'den2') {
+                        updateDeviceUI(device, state);
+                    } else {
+                        updateFanUI(state);
+                    }
+                }
             });
         }
         
-        // ==================== ĐỔI TÊN ĐÈN ====================
-        window.promptRename = function(device) {
-            const currentName = document.getElementById(`${device}Title`).innerText;
-            const newName = prompt(`Nhập tên mới cho ${currentName}:`, currentName);
-            if (newName && newName.trim()) {
-                localStorage.setItem(`${device}_name`, newName.trim());
-                document.getElementById(`${device}Title`).innerText = newName.trim();
-                showToast(`✅ Đã đổi tên thành: ${newName.trim()}`);
-            }
-        };
-        
-        function loadDeviceNames() {
-            const den1Name = localStorage.getItem('den1_name');
-            const den2Name = localStorage.getItem('den2_name');
-            if (den1Name) document.getElementById('den1Title').innerText = den1Name;
-            if (den2Name) document.getElementById('den2Title').innerText = den2Name;
-        }
-        
-        // ==================== KẾT NỐI MQTT ====================
+        // ==================== MQTT KẾT NỐI ====================
         function connectMQTT() {
+            const config = loadMqttConfig();
+            if (!config.broker) {
+                console.error('No MQTT config');
+                return false;
+            }
+            
             const options = {
-                username: MQTT_CONFIG.username,
-                password: MQTT_CONFIG.password,
+                username: config.user,
+                password: config.pass,
                 clean: true,
                 reconnectPeriod: 5000,
                 connectTimeout: 30000,
                 keepalive: 60,
-                clientId: "web_" + Math.random().toString(16).substr(2, 8)
+                clientId: "web_" + Math.random().toString(16).substring(2, 10)
             };
             
-            mqttClient = mqtt.connect(MQTT_CONFIG.broker, options);
+            if (mqttClient) {
+                try { mqttClient.end(true); } catch(e) {}
+            }
+            
+            mqttClient = mqtt.connect(config.broker, options);
             
             mqttClient.on('connect', () => {
                 console.log('✅ MQTT connected');
                 isConnected = true;
                 updateConnectionStatus('connected', '✅ Đã kết nối MQTT Broker');
-                showToast('✅ Đã kết nối MQTT!');
                 
-                // Subscribe các topic
-                const subs = [
-                    topics.temperature, topics.humidity, topics.rainValue,
-                    topics.rainStatus, topics.den1Status, topics.den2Status,
-                    topics.quatStatus
-                ];
+                const subs = Object.values(topics);
                 mqttClient.subscribe(subs, { qos: 1 });
+                console.log('📡 Đã subscribe các topics:', subs);
+                
+                // Yêu cầu cập nhật trạng thái sau khi kết nối
+                setTimeout(() => requestStatusUpdate(), 500);
             });
             
             mqttClient.on('message', (topic, message) => {
@@ -688,19 +768,36 @@
                 console.error('MQTT error:', err);
                 isConnected = false;
                 updateConnectionStatus('disconnected', '❌ Lỗi kết nối MQTT');
-                showToast('❌ Mất kết nối MQTT!', true);
             });
             
             mqttClient.on('close', () => {
-                console.log('MQTT disconnected');
                 isConnected = false;
                 updateConnectionStatus('disconnected', '🔌 Mất kết nối MQTT');
             });
+            
+            return true;
         }
+        
+        // ==================== ĐỔI TÊN ĐÈN ====================
+        window.promptRename = function(device) {
+            const currentName = document.getElementById(`${device}Title`).innerText;
+            const newName = prompt(`Nhập tên mới cho ${currentName}:`, currentName);
+            if (newName && newName.trim()) {
+                localStorage.setItem(`${device}_name`, newName.trim());
+                document.getElementById(`${device}Title`).innerText = newName.trim();
+                showToast(`✅ Đã đổi tên thành: ${newName.trim()}`);
+            }
+        };
         
         // ==================== KHỞI TẠO ====================
         function init() {
-            loadDeviceNames();
+            // Load tên đèn đã lưu
+            const den1Name = localStorage.getItem('den1_name');
+            const den2Name = localStorage.getItem('den2_name');
+            if (den1Name) document.getElementById('den1Title').innerText = den1Name;
+            if (den2Name) document.getElementById('den2Title').innerText = den2Name;
+            
+            // Kết nối MQTT
             connectMQTT();
         }
         
